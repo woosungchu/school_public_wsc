@@ -1,0 +1,469 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>안정된 직업생활 - 근무시간 시계</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Arial", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+      background: #f4f7fb;
+      color: #1f2937;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 24px;
+    }
+    .wrap {
+      width: min(1200px, 100%);
+      background: #fff;
+      border-radius: 24px;
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
+      padding: 28px;
+    }
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-bottom: 24px;
+    }
+    .title {
+      font-size: 32px;
+      font-weight: 700;
+      margin: 0;
+    }
+    .subtitle {
+      margin: 8px 0 0;
+      font-size: 18px;
+      color: #4b5563;
+    }
+    .controls {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    button {
+      border: none;
+      border-radius: 14px;
+      padding: 14px 20px;
+      font-size: 18px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.15s ease, opacity 0.15s ease;
+    }
+    button:hover { transform: translateY(-1px); }
+    button:active { transform: translateY(1px); }
+    .btn-primary { background: #2563eb; color: #fff; }
+    .btn-secondary { background: #e5e7eb; color: #111827; }
+    .btn-danger { background: #ef4444; color: #fff; }
+
+    .clock-area {
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      gap: 28px;
+      align-items: center;
+    }
+    .clock-panel {
+      background: linear-gradient(180deg, #f8fbff 0%, #eef5ff 100%);
+      border-radius: 28px;
+      padding: 30px;
+      border: 2px solid #dbeafe;
+    }
+    .digital-time {
+      font-size: clamp(64px, 10vw, 130px);
+      font-weight: 800;
+      line-height: 1;
+      letter-spacing: 2px;
+      text-align: center;
+      margin: 0 0 18px;
+      color: #111827;
+    }
+    .phase {
+      text-align: center;
+      font-size: clamp(30px, 4vw, 48px);
+      font-weight: 800;
+      color: #2563eb;
+      margin-bottom: 18px;
+    }
+    .phase-detail {
+      text-align: center;
+      font-size: 24px;
+      color: #374151;
+      min-height: 34px;
+    }
+
+    .analog-wrap {
+      display: flex;
+      justify-content: center;
+      margin-top: 28px;
+    }
+    .analog-clock {
+      position: relative;
+      width: min(420px, 70vw);
+      height: min(420px, 70vw);
+      border-radius: 50%;
+      background: #fff;
+      border: 10px solid #1f2937;
+      box-shadow: inset 0 0 20px rgba(0,0,0,0.08);
+    }
+    .center-dot {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 18px;
+      height: 18px;
+      background: #111827;
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 10;
+    }
+    .hand {
+      position: absolute;
+      left: 50%;
+      bottom: 50%;
+      transform-origin: bottom center;
+      transform: translateX(-50%) rotate(0deg);
+      border-radius: 999px;
+    }
+    .hour-hand {
+      width: 10px;
+      height: 105px;
+      background: #111827;
+      z-index: 6;
+    }
+    .minute-hand {
+      width: 6px;
+      height: 145px;
+      background: #2563eb;
+      z-index: 7;
+    }
+    .second-hand {
+      width: 3px;
+      height: 165px;
+      background: #ef4444;
+      z-index: 8;
+    }
+    .mark, .num {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+    }
+    .mark {
+      display: none;
+    }
+    .num {
+      font-size: 28px;
+      font-weight: 800;
+      color: #374151;
+    }
+
+    .schedule-panel {
+      background: #f9fafb;
+      border: 2px solid #e5e7eb;
+      border-radius: 28px;
+      padding: 24px;
+    }
+    .schedule-title {
+      font-size: 28px;
+      font-weight: 800;
+      margin: 0 0 16px;
+    }
+    .legend {
+      font-size: 18px;
+      color: #4b5563;
+      margin-bottom: 18px;
+      line-height: 1.6;
+    }
+    .timeline {
+      display: grid;
+      gap: 14px;
+    }
+    .time-block {
+      border-radius: 18px;
+      padding: 18px 20px;
+      background: #fff;
+      border: 2px solid #d1d5db;
+      transition: all 0.2s ease;
+    }
+    .time-block.active {
+      border-color: #2563eb;
+      background: #eff6ff;
+      transform: scale(1.02);
+      box-shadow: 0 8px 24px rgba(37, 99, 235, 0.12);
+    }
+    .time-label {
+      font-size: 26px;
+      font-weight: 800;
+      margin-bottom: 6px;
+    }
+    .time-desc {
+      font-size: 22px;
+      color: #374151;
+      line-height: 1.4;
+    }
+    .footer-info {
+      margin-top: 20px;
+      font-size: 18px;
+      color: #4b5563;
+      line-height: 1.7;
+      background: #eef2ff;
+      padding: 16px 18px;
+      border-radius: 16px;
+    }
+
+    @media (max-width: 960px) {
+      .clock-area { grid-template-columns: 1fr; }
+      .title { font-size: 26px; }
+      .subtitle { font-size: 16px; }
+      .schedule-title { font-size: 24px; }
+      .time-label { font-size: 22px; }
+      .time-desc { font-size: 18px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="topbar">
+      <div>
+        <h1 class="title">안정된 직업생활 - 근무시간 시계</h1>
+        <p class="subtitle">8시 출근 준비 → 9시까지 출근 → 점심시간 → 6시 퇴근 → 7시 귀가 / 속도를 바꿔가며 연습할 수 있는 학습용 시계</p>
+      </div>
+      <div class="controls">
+        <label style="display:flex; align-items:center; gap:8px; padding:0 4px; font-size:18px; font-weight:700; color:#374151;">
+          속도
+          <select id="speedSelect" style="padding:10px 12px; border:2px solid #d1d5db; border-radius:12px; font-size:17px; font-weight:700; background:#fff; color:#111827;">
+            <option value="60">아주 느리게</option>
+            <option value="120">느리게</option>
+            <option value="180" selected>보통</option>
+            <option value="300">빠르게</option>
+            <option value="600">아주 빠르게</option>
+          </select>
+        </label>
+        <button class="btn-primary" id="startBtn">시작</button>
+        <button class="btn-secondary" id="pauseBtn">일시정지</button>
+        <button class="btn-secondary" id="resumeBtn">다시재생</button>
+        <button class="btn-danger" id="resetBtn">처음으로</button>
+      </div>
+    </div>
+
+    <div class="clock-area">
+      <section class="clock-panel">
+        <div class="digital-time" id="digitalTime">08:00</div>
+        <div class="phase" id="phaseText">출근 준비 시간</div>
+        <div class="phase-detail" id="phaseDetail">자리에서 일어나 출근 준비를 해요.</div>
+
+        <div class="analog-wrap">
+          <div class="analog-clock" id="analogClock">
+            <div class="hand hour-hand" id="hourHand"></div>
+            <div class="hand minute-hand" id="minuteHand"></div>
+            <div class="hand second-hand" id="secondHand"></div>
+            <div class="center-dot"></div>
+          </div>
+        </div>
+      </section>
+
+      <aside class="schedule-panel">
+        <h2 class="schedule-title">하루 일정 보기</h2>
+        <div class="legend">
+          파란색으로 강조된 시간이 지금 진행 중입니다.<br>
+          학생들이 시계를 보고 출근, 업무, 점심, 퇴근을 연습할 수 있습니다.
+        </div>
+
+        <div class="timeline">
+          <div class="time-block" id="block-commute">
+            <div class="time-label">08:00 ~ 09:00</div>
+            <div class="time-desc">출근 준비 / 버스 타기 / 출근하기</div>
+          </div>
+          <div class="time-block" id="block-work1">
+            <div class="time-label">09:00 ~ 12:00</div>
+            <div class="time-desc">오전 업무 시간</div>
+          </div>
+          <div class="time-block" id="block-lunch">
+            <div class="time-label">12:00 ~ 13:00</div>
+            <div class="time-desc">점심시간</div>
+          </div>
+          <div class="time-block" id="block-work2">
+            <div class="time-label">13:00 ~ 18:00</div>
+            <div class="time-desc">오후 업무 시간</div>
+          </div>
+          <div class="time-block" id="block-home">
+            <div class="time-label">18:00 ~ 19:00</div>
+            <div class="time-desc">퇴근 / 집에 가기</div>
+          </div>
+        </div>
+        </div>
+
+        <div class="footer-info">
+          기본 속도 기준: <strong>실제 60초 = 시계 3시간</strong><br>
+          즉, <strong>실제 1초 = 시계 3분</strong>입니다.<br>
+          위의 속도 선택에서 더 빠르게 또는 더 느리게 바꿀 수 있습니다.
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <script>
+    const digitalTime = document.getElementById("digitalTime");
+    const phaseText = document.getElementById("phaseText");
+    const phaseDetail = document.getElementById("phaseDetail");
+    const hourHand = document.getElementById("hourHand");
+    const minuteHand = document.getElementById("minuteHand");
+    const secondHand = document.getElementById("secondHand");
+    const analogClock = document.getElementById("analogClock");
+
+    const startBtn = document.getElementById("startBtn");
+    const pauseBtn = document.getElementById("pauseBtn");
+    const resumeBtn = document.getElementById("resumeBtn");
+    const resetBtn = document.getElementById("resetBtn");
+    const speedSelect = document.getElementById("speedSelect");
+
+    const startHour = 8;
+    const endHour = 19;
+    const totalSimSeconds = (endHour - startHour) * 60 * 60; // 11시간
+    let speedPerRealSecond = 180; // 실제 1초 = 시계 180초(3분)
+
+    let simSeconds = 0;
+    let timer = null;
+    let isRunning = false;
+
+    function createClockFace() {
+      const numbers = [12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
+
+      numbers.forEach((num, index) => {
+        const el = document.createElement("div");
+        el.className = "num";
+
+        const deg = index * 30;
+        const radius = 175;
+
+        el.style.transform = `translate(-50%, -50%) rotate(${deg}deg) translateY(-${radius}px) rotate(-${deg}deg)`;
+        el.style.left = "50%";
+        el.style.top = "50%";
+        el.textContent = num;
+        analogClock.appendChild(el);
+      });
+    }
+
+    function formatTime(totalSeconds) {
+      const total = startHour * 3600 + totalSeconds;
+      const h = Math.floor(total / 3600) % 24;
+      const m = Math.floor((total % 3600) / 60);
+      return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
+    }
+
+    function updatePhaseDisplay(totalSeconds) {
+      const currentHourFloat = startHour + totalSeconds / 3600;
+      let phase = "";
+      let detail = "";
+      let activeId = "";
+
+      if (currentHourFloat < 9) {
+        phase = "출근 준비 시간";
+        detail = "버스를 타거나 이동하며 출근을 준비해요.";
+        activeId = "block-commute";
+      } else if (currentHourFloat < 12) {
+        phase = "오전 업무 시간";
+        detail = "칠판 앞 자리에서 일을 해요.";
+        activeId = "block-work1";
+      } else if (currentHourFloat < 13) {
+        phase = "점심시간";
+        detail = "점심을 먹고 쉬는 시간이에요.";
+        activeId = "block-lunch";
+      } else if (currentHourFloat < 18) {
+        phase = "오후 업무 시간";
+        detail = "다시 자리로 와서 일을 해요.";
+        activeId = "block-work2";
+      } else if (currentHourFloat < 19) {
+        phase = "퇴근 시간";
+        detail = "일을 마치고 집으로 가요.";
+        activeId = "block-home";
+      } else {
+        phase = "귀가 완료";
+        detail = "오늘의 일정이 끝났어요. 집에 도착했어요!";
+      }
+
+      phaseText.textContent = phase;
+      phaseDetail.textContent = detail;
+
+      document.querySelectorAll(".time-block").forEach((block) => block.classList.remove("active"));
+      if (activeId) document.getElementById(activeId).classList.add("active");
+    }
+
+    function updateClockHands(totalSeconds) {
+      const total = startHour * 3600 + totalSeconds;
+      const h = (total / 3600) % 12;
+      const m = (total / 60) % 60;
+      const s = total % 60;
+
+      const hourDeg = h * 30;
+      const minuteDeg = m * 6;
+      const secondDeg = s * 6;
+
+      hourHand.style.transform = `translateX(-50%) rotate(${hourDeg}deg)`;
+      minuteHand.style.transform = `translateX(-50%) rotate(${minuteDeg}deg)`;
+      secondHand.style.transform = `translateX(-50%) rotate(${secondDeg}deg)`;
+    }
+
+    function render() {
+      if (simSeconds > totalSimSeconds) simSeconds = totalSimSeconds;
+      digitalTime.textContent = formatTime(simSeconds);
+      updateClockHands(simSeconds);
+      updatePhaseDisplay(simSeconds);
+    }
+
+    function tick() {
+      simSeconds += speedPerRealSecond;
+      if (simSeconds >= totalSimSeconds) {
+        simSeconds = totalSimSeconds;
+        render();
+        pauseSimulation();
+        return;
+      }
+      render();
+    }
+
+    function startSimulation() {
+      clearInterval(timer);
+      simSeconds = 0;
+      render();
+      timer = setInterval(tick, 1000);
+      isRunning = true;
+    }
+
+    function pauseSimulation() {
+      clearInterval(timer);
+      isRunning = false;
+    }
+
+    function resumeSimulation() {
+      if (isRunning || simSeconds >= totalSimSeconds) return;
+      timer = setInterval(tick, 1000);
+      isRunning = true;
+    }
+
+    function resetSimulation() {
+      clearInterval(timer);
+      isRunning = false;
+      simSeconds = 0;
+      render();
+    }
+
+    startBtn.addEventListener("click", startSimulation);
+    pauseBtn.addEventListener("click", pauseSimulation);
+    resumeBtn.addEventListener("click", resumeSimulation);
+    resetBtn.addEventListener("click", resetSimulation);
+    speedSelect.addEventListener("change", () => {
+      speedPerRealSecond = Number(speedSelect.value);
+    });
+
+    createClockFace();
+    render();
+  </script>
+</body>
+</html>

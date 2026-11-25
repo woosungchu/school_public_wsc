@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>온라인 뱅킹 학습자료</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: Arial, 'Noto Sans KR', sans-serif; background: #f2f4f6; color: #222; }
+    .wrap { max-width: 430px; margin: 0 auto; min-height: 100vh; background: #f7f8fa; padding: 14px 14px 120px; }
+    .top { display: flex; justify-content: space-between; align-items: center; font-weight: 700; margin-bottom: 12px; }
+    .time { font-size: 15px; }
+    .screen-title { font-size: 20px; font-weight: 800; margin: 10px 2px 14px; }
+    .notice { background: white; border-radius: 18px; padding: 14px; margin-bottom: 14px; box-shadow: 0 2px 8px rgba(0,0,0,.05); }
+    .account { border-radius: 20px; padding: 18px 16px; margin-bottom: 12px; position: relative; min-height: 118px; box-shadow: 0 3px 10px rgba(0,0,0,.07); }
+    .account.sub { background: #91dce2; }
+    .label { font-size: 13px; font-weight: 700; margin-bottom: 6px; }
+    .balance { font-size: 25px; font-weight: 900; }
+    .hint { color: #555; font-size: 13px; margin-top: 8px; }
+    button { border: 0; border-radius: 999px; padding: 10px 13px; font-weight: 800; cursor: pointer; font-size: 14px; }
+    .action-panel { position: fixed; left: 50%; bottom: 0; transform: translateX(-50%); max-width: 430px; width: 100%; background: white; border-radius: 22px 22px 0 0; padding: 14px; box-shadow: 0 -4px 18px rgba(0,0,0,.12); }
+    .input-row { display: flex; gap: 8px; margin-bottom: 10px; }
+    input { flex: 1; padding: 10px; border-radius: 10px; border: 1px solid #ccc; font-size: 14px; }
+    .actions { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+    .income { background: #35c759; color: white; }
+    .spend { background: #222; color: white; }
+    .reset { background: #e9ecef; color: #333; }
+    .log-box { background: white; border-radius: 18px; padding: 14px; margin-top: 14px; box-shadow: 0 2px 8px rgba(0,0,0,.05); }
+    .log-title { font-weight: 900; margin-bottom: 8px; }
+    .log { list-style: none; padding: 0; margin: 0; }
+    .log li { display: flex; justify-content: space-between; border-bottom: 1px solid #eee; padding: 9px 0; font-size: 14px; }
+    .plus { color: #14883e; font-weight: 900; }
+    .minus { color: #d73737; font-weight: 900; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="top"><div class="time" id="nowTime">9:15</div><div>LTE 🔋</div></div>
+    <div class="screen-title">내 통장</div>
+
+    <div class="notice"><strong>오늘의 근무</strong><span>일을 하면 돈이 들어오고, 카드를 쓰면 돈이 줄어들어요.</span></div>
+
+    <div class="account sub">
+      <div class="label">내 통장</div>
+      <div class="balance" id="balanceText">0원</div>
+      <div class="hint">잔액을 확인하세요</div>
+    </div>
+
+    <div class="log-box">
+      <div class="log-title">입출금 내역</div>
+      <ul class="log" id="logList">
+        <li><span>내역 없음</span><span>0원</span></li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="action-panel">
+    <div class="input-row">
+      <input type="number" id="moneyInput" placeholder="금액 입력 (예: 10000)" />
+    </div>
+    <div class="actions">
+      <button class="income" onclick="receiveMoney()">입금</button>
+      <button class="spend" onclick="useMoney()">카드 사용</button>
+      <button class="reset" onclick="resetAll()">초기화</button>
+    </div>
+  </div>
+
+<script>
+let balance = 0;
+const balanceText = document.getElementById('balanceText');
+const logList = document.getElementById('logList');
+const nowTimeEl = document.getElementById('nowTime');
+
+function won(n){ return n.toLocaleString() + '원'; }
+function update(){ balanceText.textContent = won(balance); }
+
+function addLog(type, name, amount){
+  if(logList.innerText.includes('내역 없음')) logList.innerHTML='';
+  const li = document.createElement('li');
+  li.innerHTML = `<span>${name}</span><span class="${type}">${type==='plus'?'+':'-'}${won(amount)}</span>`;
+  logList.prepend(li);
+}
+
+function getInput(){
+  const val = parseInt(document.getElementById('moneyInput').value);
+  if(!val || val<=0){ alert('금액을 입력하세요'); return null; }
+  return val;
+}
+
+function receiveMoney(){
+  const val = getInput(); if(!val) return;
+  balance += val;
+  update();
+  addLog('plus','입금',val);
+}
+
+function useMoney(){
+  const val = getInput(); if(!val) return;
+  if(balance < val){ alert('잔액 부족'); return; }
+  balance -= val;
+  update();
+  addLog('minus','카드 사용',val);
+}
+
+function resetAll(){ balance=0; update(); logList.innerHTML='<li><span>내역 없음</span><span>0원</span></li>'; }
+
+// ✅ 한국 시간 (Asia/Seoul) 기준 현재 시각 표시
+function setTime(){
+  const now = new Date();
+  const timeStr = new Intl.DateTimeFormat('ko-KR', {
+    timeZone: 'Asia/Seoul',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false
+  }).format(now);
+  nowTimeEl.textContent = timeStr;
+}
+
+setTime();
+setInterval(setTime, 1000);
+update();
+</script>
+</body>
+</html>

@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>메뉴판</title>
+<style>
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{margin:0;background:#12161b;color:#fff;
+       font-family:"Malgun Gothic","맑은 고딕",system-ui,sans-serif;
+       display:flex;align-items:center;justify-content:center;padding:2vh 2vw}
+  .board{width:100%;max-width:1600px}
+
+  .head{display:flex;align-items:baseline;justify-content:space-between;
+        border-bottom:4px solid #ffbc0d;padding-bottom:1.2vh;margin-bottom:2.4vh;flex-wrap:wrap;gap:10px}
+  .head h1{margin:0;font-size:clamp(38px,6vw,86px);letter-spacing:.14em;color:#ffbc0d;line-height:1}
+  .head .set{font-size:clamp(18px,2.1vw,30px);color:#12161b;background:#ffbc0d;
+             border-radius:999px;padding:.5em 1.2em;font-weight:800}
+
+  .grid{display:grid;grid-template-columns:repeat(5,1fr);gap:1.4vw}
+  @media(max-width:1100px){.grid{grid-template-columns:repeat(3,1fr)}}
+  @media(max-width:680px){.grid{grid-template-columns:repeat(2,1fr)}}
+
+  .item{background:#1c222a;border:2px solid #2b333d;border-radius:18px;
+        padding:1.6vh 1vw;text-align:center}
+  .no{color:#ffbc0d;font-weight:900;font-size:clamp(20px,2.4vw,34px);letter-spacing:.02em}
+  .em{font-size:clamp(42px,5.6vw,80px);line-height:1.15;margin:.1em 0}
+  .price{font-size:clamp(24px,2.9vw,42px);font-weight:800;margin-top:.1em}
+  .setp{color:#9aa4b0;font-size:clamp(15px,1.7vw,23px);margin-top:.25em}
+
+  .drinkhd{margin:2.4vh 0 1.2vh;color:#ffbc0d;font-weight:800;
+           font-size:clamp(19px,2.2vw,32px);border-top:3px solid #2b333d;padding-top:1.6vh}
+  .drinks{display:grid;grid-template-columns:repeat(4,1fr);gap:1.4vw}
+  @media(max-width:680px){.drinks{grid-template-columns:repeat(2,1fr)}}
+  .drink{background:#1c222a;border:2px solid #2b333d;border-radius:18px;
+         padding:1.2vh 1vw;text-align:center;color:#fff}
+  .drink .em{font-size:clamp(32px,3.9vw,54px);line-height:1.15}
+  .drink .nm{font-size:clamp(18px,2.2vw,30px);font-weight:800}
+  .drink .pr{color:#cfd6dd;font-size:clamp(15px,1.8vw,24px);margin-top:.15em}
+
+  @media print{
+    .drinkhd{color:#000;border-top-color:#000}
+    .drink{background:#fff;border-color:#000;color:#000}
+    .drink .pr{color:#444}
+    body{background:#fff;color:#000;display:block}
+    .item{background:#fff;border-color:#000;break-inside:avoid}
+    .head h1,.no{color:#000}
+    .head .set{background:#000;color:#fff}
+    .setp{color:#444}
+  }
+</style>
+
+<div class="board">
+  <div class="head">
+    <h1>M E N U</h1>
+    <div class="set">세트 + 2,000원 &nbsp;·&nbsp; 음료 포함</div>
+  </div>
+  <div class="grid" id="g"></div>
+
+  <div class="drinkhd">음료 &nbsp;·&nbsp; 단품 2,500원 &nbsp;|&nbsp; 세트로 사면 +2,000원</div>
+  <div class="drinks" id="dr"></div>
+</div>
+
+<script>
+const MENU = [4500, 4800, 5200, 5500, 5900, 6200, 6500, 6900, 7200, 7500];
+const SET = 2000;
+const won = n => n.toLocaleString('ko-KR');
+const DRINKS = ['콜라', '사이다', '밀키스', '파워에이드'];
+document.getElementById('dr').innerHTML = DRINKS.map(n =>
+  `<div class="drink"><div class="em">🥤</div><div class="nm">${n}</div><div class="pr">2,500원</div></div>`).join('');
+document.getElementById('g').innerHTML = MENU.map((p, i) => `
+  <div class="item">
+    <div class="no">${i + 1}번</div>
+    <div class="em">🍔</div>
+    <div class="price">${won(p)}원</div>
+    <div class="setp">세트 ${won(p + SET)}원</div>
+  </div>`).join('');
+</script>

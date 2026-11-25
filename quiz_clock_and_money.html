@@ -1,0 +1,937 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>시계·금전관리 타임어택 퀴즈 - 주우성</title>
+  <style>
+    :root{
+      --bg:#f5f7fb;
+      --card:#ffffff;
+      --text:#1f2937;
+      --muted:#6b7280;
+      --line:#dbe2ea;
+      --primary:#2563eb;
+      --primary-dark:#1d4ed8;
+      --good:#15803d;
+      --bad:#b91c1c;
+      --warning:#c2410c;
+      --shadow:0 12px 30px rgba(31,41,55,.12);
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:system-ui,-apple-system,"Noto Sans KR","Malgun Gothic",sans-serif;
+      background:linear-gradient(180deg,#eef4ff 0%,var(--bg) 45%);
+      color:var(--text);
+      min-height:100vh;
+    }
+    button,select,input{font:inherit}
+    button{cursor:pointer}
+    .wrap{
+      width:min(1100px,calc(100% - 28px));
+      margin:0 auto;
+      padding:28px 0 44px;
+    }
+    h1{
+      text-align:center;
+      margin:0 0 8px;
+      font-size:clamp(1.7rem,4vw,2.7rem);
+    }
+    .subtitle{
+      text-align:center;
+      color:var(--muted);
+      margin-bottom:24px;
+    }
+    .card{
+      background:var(--card);
+      border:1px solid rgba(219,226,234,.9);
+      border-radius:24px;
+      box-shadow:var(--shadow);
+      padding:24px;
+    }
+    .hidden{display:none!important}
+    .setup-grid{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:18px;
+    }
+    .field{
+      border:1px solid var(--line);
+      border-radius:18px;
+      padding:16px;
+      background:#fbfdff;
+    }
+    .field-title{
+      font-weight:800;
+      margin-bottom:12px;
+      font-size:1.05rem;
+    }
+    .segmented{
+      display:grid;
+      grid-template-columns:repeat(3,1fr);
+      gap:8px;
+    }
+    .segmented.two{grid-template-columns:repeat(2,1fr)}
+    .choice-btn{
+      border:2px solid var(--line);
+      border-radius:14px;
+      background:white;
+      padding:13px 8px;
+      font-weight:750;
+      transition:.15s;
+    }
+    .choice-btn:hover{transform:translateY(-1px);border-color:#93b4ff}
+    .choice-btn.active{
+      border-color:var(--primary);
+      background:#eaf1ff;
+      color:var(--primary-dark);
+    }
+    .range-row{
+      display:flex;
+      align-items:center;
+      gap:14px;
+    }
+    .range-row input{width:100%}
+    .range-value{
+      min-width:74px;
+      text-align:center;
+      font-weight:900;
+      color:var(--primary-dark);
+      background:#eaf1ff;
+      border-radius:12px;
+      padding:8px;
+    }
+    .start-btn,.main-btn{
+      width:100%;
+      border:0;
+      border-radius:18px;
+      background:var(--primary);
+      color:white;
+      font-weight:900;
+      font-size:1.25rem;
+      padding:17px;
+      margin-top:20px;
+      box-shadow:0 8px 18px rgba(37,99,235,.25);
+    }
+    .start-btn:hover,.main-btn:hover{background:var(--primary-dark)}
+    .help{
+      margin-top:14px;
+      color:var(--muted);
+      line-height:1.6;
+      font-size:.95rem;
+    }
+
+    .hud{
+      display:grid;
+      grid-template-columns:repeat(4,1fr);
+      gap:10px;
+      margin-bottom:16px;
+    }
+    .hud-box{
+      border:1px solid var(--line);
+      border-radius:16px;
+      padding:10px 8px;
+      text-align:center;
+      background:#fbfdff;
+    }
+    .hud-label{font-size:.82rem;color:var(--muted)}
+    .hud-value{font-size:1.35rem;font-weight:900;margin-top:2px}
+    .timer.danger{color:var(--bad);animation:pulse .65s infinite alternate}
+    @keyframes pulse{to{transform:scale(1.08)}}
+
+    .game-top-actions{
+      display:flex;
+      justify-content:flex-end;
+      margin-bottom:10px;
+    }
+    .back-btn{
+      border:2px solid var(--line);
+      background:white;
+      color:var(--text);
+      border-radius:14px;
+      padding:10px 14px;
+      font-weight:850;
+    }
+    .back-btn:hover{
+      border-color:var(--primary);
+      color:var(--primary-dark);
+      background:#f8fbff;
+    }
+    .progress{
+      height:13px;
+      border-radius:999px;
+      overflow:hidden;
+      background:#e5e7eb;
+      margin-bottom:18px;
+    }
+    .progress > div{
+      height:100%;
+      width:0%;
+      background:var(--primary);
+      transition:width .2s ease;
+    }
+
+    .question-area{
+      min-height:310px;
+      display:flex;
+      flex-direction:column;
+      justify-content:center;
+      align-items:center;
+      text-align:center;
+      padding:8px;
+    }
+    .badge{
+      display:inline-block;
+      padding:7px 12px;
+      border-radius:999px;
+      background:#eef2ff;
+      color:#3730a3;
+      font-weight:800;
+      margin-bottom:10px;
+    }
+    .prompt{
+      font-size:clamp(1.25rem,3vw,1.85rem);
+      font-weight:900;
+      margin:4px 0 18px;
+    }
+    .money-number{
+      font-variant-numeric:tabular-nums;
+      letter-spacing:.02em;
+      font-size:clamp(2.3rem,7vw,4.6rem);
+      font-weight:1000;
+      color:#111827;
+      padding:16px 22px;
+      border-radius:20px;
+      background:#f3f6fb;
+      border:2px solid var(--line);
+      word-break:break-all;
+    }
+    .clock-wrap{
+      width:min(280px,72vw);
+      aspect-ratio:1;
+    }
+    .answers{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:12px;
+      margin-top:16px;
+    }
+    .answer-btn{
+      min-height:74px;
+      border:2px solid var(--line);
+      border-radius:18px;
+      background:white;
+      font-size:clamp(1rem,2.4vw,1.28rem);
+      font-weight:850;
+      padding:14px;
+      line-height:1.35;
+    }
+    .answer-btn:hover{border-color:#7aa2ff;background:#f8fbff}
+    .answer-btn.correct{border-color:var(--good);background:#ecfdf3;color:var(--good)}
+    .answer-btn.wrong{border-color:var(--bad);background:#fff1f2;color:var(--bad)}
+    .answer-btn:disabled{cursor:default}
+    .feedback{
+      min-height:34px;
+      text-align:center;
+      font-size:1.15rem;
+      font-weight:900;
+      margin-top:12px;
+    }
+    .feedback.good{color:var(--good)}
+    .feedback.bad{color:var(--bad)}
+
+    .result{
+      text-align:center;
+    }
+    .result h2{font-size:2rem;margin-top:0}
+    .result-score{
+      font-size:clamp(3rem,10vw,5.5rem);
+      font-weight:1000;
+      color:var(--primary);
+      margin:10px 0;
+    }
+    .result-grid{
+      display:grid;
+      grid-template-columns:repeat(3,1fr);
+      gap:12px;
+      margin:22px 0;
+    }
+    .result-item{
+      border:1px solid var(--line);
+      border-radius:18px;
+      padding:16px 8px;
+      background:#fbfdff;
+    }
+    .result-item b{display:block;font-size:1.7rem;margin-top:5px}
+    .result-actions{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:10px;
+    }
+    .secondary{
+      border:2px solid var(--primary);
+      background:white;
+      color:var(--primary-dark);
+      border-radius:18px;
+      font-weight:900;
+      font-size:1.1rem;
+      padding:15px;
+    }
+    .review{
+      text-align:left;
+      margin-top:24px;
+      border-top:1px solid var(--line);
+      padding-top:18px;
+    }
+    .review h3{margin:0 0 12px}
+    .review-item{
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:12px;
+      margin-bottom:9px;
+      background:#fff;
+      line-height:1.5;
+    }
+    .review-item strong{color:var(--bad)}
+    @media(max-width:720px){
+      .setup-grid{grid-template-columns:1fr}
+      .hud{grid-template-columns:repeat(2,1fr)}
+      .answers{grid-template-columns:1fr}
+      .result-grid{grid-template-columns:1fr}
+      .result-actions{grid-template-columns:1fr}
+      .card{padding:18px}
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <h1>⏰ 시계·금전관리 타임어택</h1>
+    <div class="subtitle">시계를 읽고, 선생님이 읽어 주는 금액에 맞는 숫자를 골라 보세요.</div>
+
+    <section id="setupScreen" class="card">
+      <div class="setup-grid">
+        <div class="field">
+          <div class="field-title">1. 문제 영역</div>
+          <div class="segmented">
+            <button class="choice-btn" data-group="category" data-value="mixed">혼합</button>
+            <button class="choice-btn active" data-group="category" data-value="clock">시계</button>
+            <button class="choice-btn" data-group="category" data-value="money">금전</button>
+          </div>
+        </div>
+
+        <div class="field">
+          <div class="field-title">2. 난이도</div>
+          <div class="segmented">
+            <button class="choice-btn active" data-group="difficulty" data-value="easy">쉬움</button>
+            <button class="choice-btn" data-group="difficulty" data-value="normal">보통</button>
+            <button class="choice-btn" data-group="difficulty" data-value="hard">어려움</button>
+          </div>
+        </div>
+
+        <div class="field">
+          <div class="field-title">3. 문제 수</div>
+          <div class="segmented">
+            <button class="choice-btn active" data-group="count" data-value="10">10문제</button>
+            <button class="choice-btn" data-group="count" data-value="15">15문제</button>
+            <button class="choice-btn" data-group="count" data-value="20">20문제</button>
+          </div>
+        </div>
+
+        <div class="field">
+          <div class="field-title">4. 제한시간</div>
+          <div class="segmented">
+            <button class="choice-btn" data-group="time" data-value="60">60초</button>
+            <button class="choice-btn" data-group="time" data-value="120">2분</button>
+            <button class="choice-btn active" data-group="time" data-value="0">시간제한 없음</button>
+          </div>
+        </div>
+      </div>
+
+      <button id="startBtn" class="start-btn">게임 시작</button>
+      <div class="help">
+        <b>시계:</b> 쉬움은 정각, 보통은 10분 단위, 어려움은 1분 단위입니다.<br>
+        <b>금전:</b> 한글로 제시된 금액을 듣고 숫자 보기에서 고릅니다. 쉬움은 백 원·천 원·만 원의 자릿수 구별을 중심으로 출제되고, 보통은 천 원 단위, 어려움은 최대 9억 원까지 출제됩니다.
+      </div>
+    </section>
+
+    <section id="gameScreen" class="card hidden">
+      <div class="game-top-actions">
+        <button id="backToSetupBtn" class="back-btn">← 설정으로 돌아가기</button>
+      </div>
+      <div class="hud">
+        <div class="hud-box"><div class="hud-label">남은 시간</div><div id="timer" class="hud-value timer">60초</div></div>
+        <div class="hud-box"><div class="hud-label">문제</div><div id="questionNo" class="hud-value">1 / 10</div></div>
+        <div class="hud-box"><div class="hud-label">점수</div><div id="score" class="hud-value">0</div></div>
+        <div class="hud-box"><div class="hud-label">연속 정답</div><div id="streak" class="hud-value">0</div></div>
+      </div>
+      <div class="progress"><div id="progressBar"></div></div>
+
+      <div class="question-area">
+        <div id="typeBadge" class="badge">시계 문제</div>
+        <div id="prompt" class="prompt">시계가 가리키는 시간을 고르세요.</div>
+        <div id="visual"></div>
+      </div>
+
+      <div id="answers" class="answers"></div>
+      <div id="feedback" class="feedback" aria-live="polite"></div>
+    </section>
+
+    <section id="reviewGameScreen" class="card hidden">
+      <div class="game-top-actions">
+        <button id="backToResultBtn" class="back-btn">← 결과로 돌아가기</button>
+      </div>
+      <div class="hud" style="grid-template-columns:1fr;">
+        <div class="hud-box">
+          <div class="hud-label">틀린 문제 다시 풀기</div>
+          <div id="reviewQuestionNo" class="hud-value">1 / 1</div>
+        </div>
+      </div>
+      <div class="progress"><div id="reviewProgressBar"></div></div>
+      <div class="question-area">
+        <div id="reviewTypeBadge" class="badge">다시 풀기</div>
+        <div id="reviewPrompt" class="prompt"></div>
+        <div id="reviewVisual"></div>
+      </div>
+      <div id="reviewAnswers" class="answers"></div>
+      <div id="reviewFeedback" class="feedback" aria-live="polite"></div>
+    </section>
+
+    <section id="resultScreen" class="card result hidden">
+      <h2>게임 결과</h2>
+      <div id="resultScore" class="result-score">0점</div>
+      <div id="resultMessage">잘했어요!</div>
+
+      <div class="result-grid">
+        <div class="result-item">정답<b id="correctCount">0</b></div>
+        <div class="result-item">오답<b id="wrongCount">0</b></div>
+        <div class="result-item">최고 연속 정답<b id="bestStreak">0</b></div>
+      </div>
+
+      <div class="result-actions">
+        <button id="retryBtn" class="main-btn" style="margin:0">같은 설정으로 다시</button>
+        <button id="setupBtn" class="secondary">설정으로 돌아가기</button>
+      </div>
+
+      <div id="review" class="review hidden">
+        <h3>틀린 문제 다시 보기</h3>
+        <div id="reviewList"></div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const state = {
+      category: "clock",
+      difficulty: "easy",
+      count: 10,
+      timeLimit: 0,
+      timeLeft: 0,
+      current: 0,
+      score: 0,
+      streak: 0,
+      bestStreak: 0,
+      correct: 0,
+      wrong: 0,
+      timerId: null,
+      locked: false,
+      question: null,
+      mistakes: [],
+      reviewQuestions: [],
+      reviewIndex: 0
+    };
+
+    const $ = (id) => document.getElementById(id);
+
+    document.querySelectorAll(".choice-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const group = btn.dataset.group;
+        document.querySelectorAll(`[data-group="${group}"]`).forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+        const value = btn.dataset.value;
+        if(group === "category") state.category = value;
+        if(group === "difficulty") state.difficulty = value;
+        if(group === "count") state.count = Number(value);
+        if(group === "time") state.timeLimit = Number(value);
+      });
+    });
+
+    $("startBtn").addEventListener("click", startGame);
+    $("retryBtn").addEventListener("click", startGame);
+    $("setupBtn").addEventListener("click", () => showScreen("setup"));
+    $("backToSetupBtn").addEventListener("click", () => {
+      clearInterval(state.timerId);
+      state.locked = true;
+      showScreen("setup");
+    });
+    $("backToResultBtn").addEventListener("click", () => {
+      showScreen("result");
+    });
+
+    function showScreen(name){
+      $("setupScreen").classList.toggle("hidden", name !== "setup");
+      $("gameScreen").classList.toggle("hidden", name !== "game");
+      $("reviewGameScreen").classList.toggle("hidden", name !== "reviewGame");
+      $("resultScreen").classList.toggle("hidden", name !== "result");
+    }
+
+    function startGame(){
+      clearInterval(state.timerId);
+      state.timeLeft = state.timeLimit;
+      state.current = 0;
+      state.score = 0;
+      state.streak = 0;
+      state.bestStreak = 0;
+      state.correct = 0;
+      state.wrong = 0;
+      state.locked = false;
+      state.mistakes = [];
+      updateHud();
+      showScreen("game");
+      nextQuestion();
+
+      if(state.timeLimit > 0){
+        state.timerId = setInterval(() => {
+          state.timeLeft--;
+          updateHud();
+          if(state.timeLeft <= 0) endGame();
+        }, 1000);
+      }
+    }
+
+    function updateHud(){
+      $("timer").textContent = state.timeLimit === 0 ? "제한 없음" : `${state.timeLeft}초`;
+      $("timer").classList.toggle("danger", state.timeLimit > 0 && state.timeLeft <= 10);
+      $("questionNo").textContent = `${Math.min(state.current + 1, state.count)} / ${state.count}`;
+      $("score").textContent = state.score;
+      $("streak").textContent = state.streak;
+      $("progressBar").style.width = `${(state.current / state.count) * 100}%`;
+    }
+
+    function nextQuestion(){
+      if(state.current >= state.count || (state.timeLimit > 0 && state.timeLeft <= 0)){
+        endGame();
+        return;
+      }
+
+      state.locked = false;
+      $("feedback").textContent = "";
+      $("feedback").className = "feedback";
+
+      let type = state.category;
+      if(type === "mixed") type = Math.random() < 0.5 ? "clock" : "money";
+
+      state.question = type === "clock" ? makeClockQuestion() : makeMoneyQuestion();
+      renderQuestion(state.question);
+      updateHud();
+    }
+
+    function makeClockQuestion(){
+      let hour = rand(1,12);
+      let minute;
+
+      if(state.difficulty === "easy") minute = 0;
+      else if(state.difficulty === "normal") minute = rand(0,5) * 10;
+      else minute = rand(0,59);
+
+      const correct = timeText(hour, minute);
+      const choices = new Set([correct]);
+
+      while(choices.size < 4){
+        let h = hour;
+        let m = minute;
+
+        if(state.difficulty === "easy"){
+          h = wrapHour(hour + randomFrom([-3,-2,-1,1,2,3]));
+          m = 0;
+        }else if(state.difficulty === "normal"){
+          const mode = Math.random();
+          if(mode < .45) h = wrapHour(hour + randomFrom([-2,-1,1,2]));
+          else m = ((minute + randomFrom([-20,-10,10,20])) % 60 + 60) % 60;
+        }else{
+          const mode = Math.random();
+          if(mode < .35) h = wrapHour(hour + randomFrom([-2,-1,1,2]));
+          else m = ((minute + randomFrom([-15,-10,-5,-2,-1,1,2,5,10,15])) % 60 + 60) % 60;
+        }
+        choices.add(timeText(h,m));
+      }
+
+      return {
+        type:"clock",
+        hour,
+        minute,
+        correct,
+        choices:shuffle([...choices]),
+        summary:`${hour}시 ${minute}분`
+      };
+    }
+
+    function renderClock(hour, minute){
+      const size = 280, cx = 140, cy = 140, r = 122;
+      const minuteAngle = minute * 6;
+      const hourAngle = (hour % 12) * 30 + minute * .5;
+
+      const handEnd = (angle, length) => {
+        const rad = (angle - 90) * Math.PI / 180;
+        return {x:cx + Math.cos(rad)*length, y:cy + Math.sin(rad)*length};
+      };
+      const hEnd = handEnd(hourAngle, 64);
+      const mEnd = handEnd(minuteAngle, 92);
+
+      let ticks = "";
+      for(let i=0;i<60;i++){
+        const a = (i*6-90)*Math.PI/180;
+        const outer = r - 4;
+        const inner = r - (i%5===0 ? 17 : 9);
+        ticks += `<line x1="${cx+Math.cos(a)*inner}" y1="${cy+Math.sin(a)*inner}" x2="${cx+Math.cos(a)*outer}" y2="${cy+Math.sin(a)*outer}" stroke="#334155" stroke-width="${i%5===0?3:1.3}" />`;
+      }
+
+      let numbers = "";
+      for(let n=1;n<=12;n++){
+        const a = (n*30-90)*Math.PI/180;
+        numbers += `<text x="${cx+Math.cos(a)*94}" y="${cy+Math.sin(a)*94+7}" text-anchor="middle" font-size="22" font-weight="800" fill="#111827">${n}</text>`;
+      }
+
+      return `
+        <div class="clock-wrap">
+          <svg viewBox="0 0 ${size} ${size}" role="img" aria-label="아날로그 시계">
+            <circle cx="${cx}" cy="${cy}" r="${r}" fill="#fff" stroke="#cbd5e1" stroke-width="5"/>
+            ${ticks}
+            ${numbers}
+            <line x1="${cx}" y1="${cy}" x2="${hEnd.x}" y2="${hEnd.y}" stroke="#111827" stroke-width="9" stroke-linecap="round"/>
+            <line x1="${cx}" y1="${cy}" x2="${mEnd.x}" y2="${mEnd.y}" stroke="#2563eb" stroke-width="6" stroke-linecap="round"/>
+            <circle cx="${cx}" cy="${cy}" r="8" fill="#111827"/>
+          </svg>
+        </div>`;
+    }
+
+    function makeMoneyQuestion(){
+      let amount;
+      if(state.difficulty === "easy"){
+        // 쉬움은 '백 원 / 천 원 / 만 원'의 자릿수 구별을 많이 연습하도록 구성
+        // 예: 600원 → 600원 / 6,000원 / 60,000원처럼 자릿수가 다른 보기를 함께 제시
+        const base = rand(1,9);
+        const place = randomFrom([100, 1000, 10000]);
+        amount = base * place;
+      }else if(state.difficulty === "normal"){
+        amount = rand(10,999) * 1000;
+      }else{
+        amount = rand(1000000, 900000000);
+      }
+
+      const correct = `${amount.toLocaleString("ko-KR")}원`;
+      const choices = new Set([correct]);
+
+      while(choices.size < 4){
+        let fake;
+        if(state.difficulty === "easy"){
+          // 쉬움 오답은 대부분 '숫자는 비슷하지만 자릿수가 다른 금액'으로 만듭니다.
+          // 3자리(백 원대), 4자리(천 원대), 5자리(만 원대)를 눈으로 구별하는 연습입니다.
+          const leading = Number(String(amount)[0]);
+
+          const placeChoices = [100, 1000, 10000]
+            .map(place => leading * place)
+            .filter(v => v !== amount);
+
+          // 우선 자릿수가 다른 오답을 넣고,
+          // 남는 한 칸은 같은 자릿수에서 숫자만 다른 오답으로 채웁니다.
+          const currentChoiceValues = [...choices].map(v =>
+            Number(v.replace(/[^0-9]/g, ""))
+          );
+
+          const crossPlace = placeChoices.filter(v => !currentChoiceValues.includes(v));
+
+          if(crossPlace.length){
+            fake = randomFrom(crossPlace);
+          }else{
+            const magnitude = amount >= 10000 ? 10000 : amount >= 1000 ? 1000 : 100;
+            let otherLeading = rand(1,9);
+            while(otherLeading === leading) otherLeading = rand(1,9);
+            fake = otherLeading * magnitude;
+          }
+        }else if(state.difficulty === "normal"){
+          const delta = randomFrom([-200000,-100000,-50000,-20000,-10000,10000,20000,50000,100000,200000]);
+          fake = Math.max(10000, Math.min(999000, amount + delta));
+          fake = Math.round(fake/1000)*1000;
+        }else{
+          const factor = randomFrom([1,10,100,1000,10000,100000,1000000]);
+          const delta = randomFrom([-9,-5,-2,-1,1,2,5,9]) * factor;
+          fake = Math.max(1000000, Math.min(900000000, amount + delta));
+        }
+        if(fake !== amount) choices.add(`${fake.toLocaleString("ko-KR")}원`);
+      }
+
+      return {
+        type:"money",
+        amount,
+        correct,
+        choices:shuffle([...choices]),
+        summary:koreanMoney(amount)
+      };
+    }
+
+    function renderQuestion(q){
+      $("answers").innerHTML = "";
+      if(q.type === "clock"){
+        $("typeBadge").textContent = "시계 문제";
+        $("prompt").textContent = "시계가 가리키는 시간을 고르세요.";
+        $("visual").innerHTML = renderClock(q.hour,q.minute);
+      }else{
+        $("typeBadge").textContent = "금전관리 문제";
+        $("prompt").textContent = "선생님이 읽어 주는 금액을 듣고 숫자를 고르세요.";
+        $("visual").innerHTML = `<div class="money-number">${koreanMoney(q.amount)}</div>`;
+      }
+
+      q.choices.forEach(choice => {
+        const btn = document.createElement("button");
+        btn.className = "answer-btn";
+        btn.textContent = choice;
+        btn.addEventListener("click", () => answer(choice, btn));
+        $("answers").appendChild(btn);
+      });
+    }
+
+    function answer(choice, clickedBtn){
+      if(state.locked || clickedBtn.disabled) return;
+
+      if(choice === state.question.correct){
+        state.locked = true;
+
+        const buttons = [...document.querySelectorAll(".answer-btn")];
+        buttons.forEach(b => b.disabled = true);
+        clickedBtn.classList.add("correct");
+
+        state.correct++;
+        state.streak++;
+        state.bestStreak = Math.max(state.bestStreak, state.streak);
+        const bonus = Math.min(state.streak * 10, 100);
+        state.score += 100 + bonus;
+
+        $("feedback").textContent = state.streak >= 3
+          ? `정답! ${state.streak}연속 성공!`
+          : "정답!";
+        $("feedback").className = "feedback good";
+
+        updateHud();
+
+        setTimeout(() => {
+          state.current++;
+          nextQuestion();
+        }, 850);
+
+      }else{
+        // 오답은 점수에 반영하지만, 같은 문제에서 다시 풀 수 있게 유지합니다.
+        state.wrong++;
+        state.streak = 0;
+        state.score = Math.max(0, state.score - 100);
+
+        // 이미 선택한 오답만 다시 누르지 못하게 하고 나머지 보기는 계속 선택할 수 있습니다.
+        clickedBtn.classList.add("wrong");
+        clickedBtn.disabled = true;
+
+        $("feedback").textContent = "틀렸습니다. 다시 풀어보세요.";
+        $("feedback").className = "feedback bad";
+
+        state.mistakes.push({
+          question: state.question.summary,
+          selected: choice,
+          correct: state.question.correct,
+          questionData: JSON.parse(JSON.stringify(state.question))
+        });
+
+        updateHud();
+      }
+    }
+
+    function startReviewAll(){
+      // 같은 원문제가 여러 번 틀렸더라도 다시 풀기에서는 한 문제당 한 번만 출제
+      const unique = [];
+      const seen = new Set();
+
+      state.mistakes.forEach(m => {
+        if(!m.questionData) return;
+        const q = m.questionData;
+        const key = q.type === "clock"
+          ? `clock-${q.hour}-${q.minute}`
+          : `money-${q.amount}`;
+
+        if(!seen.has(key)){
+          seen.add(key);
+          unique.push(JSON.parse(JSON.stringify(q)));
+        }
+      });
+
+      if(unique.length === 0) return;
+
+      state.reviewQuestions = unique;
+      state.reviewIndex = 0;
+      showScreen("reviewGame");
+      renderReviewQuestion();
+    }
+
+    function renderReviewQuestion(){
+      if(state.reviewIndex >= state.reviewQuestions.length){
+        $("reviewFeedback").textContent = "틀린 문제를 모두 다시 풀었습니다!";
+        $("reviewFeedback").className = "feedback good";
+        $("reviewAnswers").innerHTML = `
+          <button class="main-btn" id="finishReviewBtn" style="margin-top:8px;">결과로 돌아가기</button>
+        `;
+        $("reviewVisual").innerHTML = "";
+        $("reviewPrompt").textContent = "다시 풀기 완료";
+        $("reviewTypeBadge").textContent = "완료";
+        $("reviewQuestionNo").textContent = `${state.reviewQuestions.length} / ${state.reviewQuestions.length}`;
+        $("reviewProgressBar").style.width = "100%";
+        $("finishReviewBtn").addEventListener("click", () => showScreen("result"));
+        return;
+      }
+
+      const q = state.reviewQuestions[state.reviewIndex];
+      $("reviewAnswers").innerHTML = "";
+      $("reviewFeedback").textContent = "";
+      $("reviewFeedback").className = "feedback";
+
+      $("reviewQuestionNo").textContent = `${state.reviewIndex + 1} / ${state.reviewQuestions.length}`;
+      $("reviewProgressBar").style.width = `${(state.reviewIndex / state.reviewQuestions.length) * 100}%`;
+
+      if(q.type === "clock"){
+        $("reviewTypeBadge").textContent = "시계 문제 다시 풀기";
+        $("reviewPrompt").textContent = "시계가 가리키는 시간을 다시 골라보세요.";
+        $("reviewVisual").innerHTML = renderClock(q.hour, q.minute);
+      }else{
+        $("reviewTypeBadge").textContent = "금전관리 문제 다시 풀기";
+        $("reviewPrompt").textContent = "금액을 다시 보고 맞는 숫자를 골라보세요.";
+        $("reviewVisual").innerHTML = `<div class="money-number">${koreanMoney(q.amount)}</div>`;
+      }
+
+      q.choices.forEach(choice => {
+        const btn = document.createElement("button");
+        btn.className = "answer-btn";
+        btn.textContent = choice;
+        btn.addEventListener("click", () => answerReviewQuestion(q, choice, btn));
+        $("reviewAnswers").appendChild(btn);
+      });
+    }
+
+    function answerReviewQuestion(q, choice, clickedBtn){
+      if(clickedBtn.disabled) return;
+
+      if(choice === q.correct){
+        const buttons = [...document.querySelectorAll("#reviewAnswers .answer-btn")];
+        buttons.forEach(b => b.disabled = true);
+        clickedBtn.classList.add("correct");
+        $("reviewFeedback").textContent = "정답!";
+        $("reviewFeedback").className = "feedback good";
+
+        setTimeout(() => {
+          state.reviewIndex++;
+          renderReviewQuestion();
+        }, 700);
+      }else{
+        clickedBtn.classList.add("wrong");
+        clickedBtn.disabled = true;
+        $("reviewFeedback").textContent = "틀렸습니다. 다시 풀어보세요.";
+        $("reviewFeedback").className = "feedback bad";
+      }
+    }
+
+    function endGame(){
+      if($("gameScreen").classList.contains("hidden")) return;
+      clearInterval(state.timerId);
+      $("progressBar").style.width = "100%";
+
+      $("resultScore").textContent = `${state.score}점`;
+      $("correctCount").textContent = state.correct;
+      $("wrongCount").textContent = state.wrong;
+      $("bestStreak").textContent = state.bestStreak;
+
+      const attempted = state.correct + state.wrong;
+      const rate = attempted ? state.correct / attempted : 0;
+      let message = "다시 도전해 보세요!";
+      if(rate >= .9) message = "대단해요! 거의 완벽합니다.";
+      else if(rate >= .7) message = "잘했어요! 조금만 더 연습하면 됩니다.";
+      else if(rate >= .5) message = "좋아요! 틀린 문제를 다시 확인해 보세요.";
+      $("resultMessage").textContent = message;
+
+      if(state.mistakes.length){
+        $("review").classList.remove("hidden");
+        $("reviewList").innerHTML = `
+          <button id="reviewAllBtn" class="secondary" style="width:100%;margin-bottom:14px;">
+            틀린 문제 모두 다시 풀기
+          </button>
+        ` + state.mistakes.map((m,i) => `
+          <div class="review-item">
+            <b>${i+1}. ${m.question}</b><br>
+            선택: <strong>${m.selected}</strong><br>
+            정답: ${m.correct}
+          </div>`).join("");
+
+        $("reviewAllBtn").addEventListener("click", startReviewAll);
+      }else{
+        $("review").classList.add("hidden");
+        $("reviewList").innerHTML = "";
+      }
+      showScreen("result");
+    }
+
+    function timeText(hour, minute){
+      return `${hour}시 ${minute === 0 ? "정각" : minute + "분"}`;
+    }
+
+    function wrapHour(h){
+      return ((h - 1 + 12) % 12) + 1;
+    }
+
+    function koreanMoney(num){
+      return koreanNumber(num) + " 원";
+    }
+
+    function koreanNumber(num){
+      if(num === 0) return "영";
+      const digits = ["","일","이","삼","사","오","육","칠","팔","구"];
+      const smallUnits = ["","십","백","천"];
+      const bigUnits = ["","만","억","조"];
+      const groups = [];
+      let n = Math.floor(num);
+
+      while(n > 0){
+        groups.push(n % 10000);
+        n = Math.floor(n / 10000);
+      }
+
+      function readGroup(group){
+        let result = "";
+        const s = String(group).padStart(4,"0");
+        for(let i=0;i<4;i++){
+          const d = Number(s[i]);
+          if(d === 0) continue;
+          const unitIndex = 3 - i;
+          if(d === 1 && unitIndex > 0) result += smallUnits[unitIndex];
+          else result += digits[d] + smallUnits[unitIndex];
+        }
+        return result;
+      }
+
+      let result = "";
+      for(let i=groups.length-1;i>=0;i--){
+        if(groups[i] === 0) continue;
+        result += readGroup(groups[i]) + bigUnits[i];
+      }
+      return result;
+    }
+
+    function rand(min,max){
+      return Math.floor(Math.random()*(max-min+1))+min;
+    }
+    function randomFrom(arr){
+      return arr[Math.floor(Math.random()*arr.length)];
+    }
+    function shuffle(arr){
+      for(let i=arr.length-1;i>0;i--){
+        const j = Math.floor(Math.random()*(i+1));
+        [arr[i],arr[j]] = [arr[j],arr[i]];
+      }
+      return arr;
+    }
+  </script>
+</body>
+</html>

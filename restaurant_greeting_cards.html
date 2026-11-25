@@ -1,0 +1,285 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>인사말 · 돌발상황 카드</title>
+<style>
+  :root{
+    --ink:#1d2430; --sub:#5d6875; --line:#e2e6eb; --bg:#f5f6f8;
+    --red:#c8102e; --yellow:#ffbc0d; --blue:#1b63b0;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+       font-family:"Malgun Gothic","맑은 고딕",system-ui,sans-serif;font-size:15px}
+  .wrap{max-width:1500px;margin:0 auto;padding:18px 16px 40px}
+
+  /* 탭 */
+  .tabs{display:flex;gap:10px;margin-bottom:18px;flex-wrap:wrap}
+  .tabs button{border:3px solid var(--line);background:#fff;border-radius:14px;
+               padding:12px 30px;font-size:clamp(18px,2.1vw,26px);font-weight:800;
+               cursor:pointer;color:var(--sub)}
+  .tabs button[aria-selected="true"]{background:var(--ink);border-color:var(--ink);color:#fff}
+
+  /* ── 탭 1 : 인사말 ── */
+  .g-head h1{font-size:clamp(28px,4vw,56px);margin:0 0 .15em;letter-spacing:-.02em}
+  .g-head .s{color:var(--sub);font-size:clamp(15px,1.8vw,24px);margin-bottom:2.2vh}
+  .g-list{display:grid;gap:1.5vh}
+  .g-row{display:flex;align-items:center;gap:1.6vw;background:#fff;
+         border:3px solid var(--yellow);border-radius:20px;padding:1.7vh 1.8vw}
+  .g-n{flex:none;width:clamp(48px,4.6vw,78px);height:clamp(48px,4.6vw,78px);border-radius:50%;
+       background:var(--yellow);color:#3a2c00;font-weight:900;
+       font-size:clamp(24px,2.7vw,40px);display:grid;place-items:center}
+  .g-say{font-size:clamp(27px,4vw,58px);font-weight:800;letter-spacing:-.03em;line-height:1.2}
+  .g-when{margin-left:auto;flex:none;color:var(--sub);
+          font-size:clamp(14px,1.7vw,24px);text-align:right;line-height:1.35}
+  .g-foot{margin-top:2.4vh;background:var(--ink);color:#fff;border-radius:18px;
+          padding:1.5vh 2vw;font-size:clamp(17px,2.2vw,32px);font-weight:800;text-align:center}
+  .g-foot b{color:var(--yellow)}
+  @media(max-width:760px){
+    .g-row{flex-wrap:wrap}
+    .g-when{margin-left:calc(clamp(48px,4.6vw,78px) + 1.6vw);text-align:left;width:100%}
+  }
+
+  /* ── 탭 2 : 돌발상황 카드 ── */
+  .c-head h1{font-size:26px;margin:0 0 4px}
+  .c-head .s{color:var(--sub);font-size:14px;margin-bottom:16px}
+  .deck{display:grid;grid-template-columns:repeat(auto-fill,minmax(420px,1fr));gap:14px}
+  @media(max-width:900px){.deck{grid-template-columns:1fr}}
+  .card{background:#fff;border:2px solid var(--line);border-radius:14px;padding:14px 16px;cursor:pointer}
+  .card.mgr{border-color:var(--red)}
+  .card:hover{border-color:var(--blue)}
+  .card.mgr:hover{border-color:#8b0000}
+
+  .hd{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;
+      border-bottom:2px solid var(--line);padding-bottom:8px;margin-bottom:10px}
+  .hd .n{color:var(--blue);font-weight:900;font-size:13px}
+  .hd .t{font-size:20px;font-weight:800;letter-spacing:-.02em}
+  .hd .m{margin-left:auto;background:var(--red);color:#fff;border-radius:999px;
+         padding:2px 10px;font-size:12px;font-weight:800;white-space:nowrap}
+  .row{display:flex;gap:10px;margin-bottom:8px}
+  .row .lb{flex:none;width:58px;font-size:12px;font-weight:800;color:var(--sub);
+           padding-top:3px;letter-spacing:.04em}
+  .row .bd{flex:1}
+  .row p{margin:0 0 3px;line-height:1.45}
+  .row p:last-child{margin-bottom:0}
+  .say p{font-size:17px;font-weight:800}
+  .say .br{display:block;color:var(--sub);font-size:12.5px;font-weight:700;margin-top:4px}
+  .sit p{font-size:15px}
+  .act p{font-size:14px;color:#39424e}
+  .key{margin-top:10px;background:var(--ink);color:#fff;border-radius:10px;
+       padding:7px 12px;font-size:14px;font-weight:800;text-align:center}
+  .key b{color:var(--yellow)}
+
+  /* 모달 */
+  #back{position:fixed;inset:0;background:rgba(15,20,26,.72);
+        display:grid;place-items:center;padding:3vh 3vw;z-index:50}
+  #modal{background:#fff;border-radius:22px;width:min(1100px,96vw);
+         max-height:94vh;overflow:auto;padding:3vh 3vw;position:relative}
+  #modal.mgr{border:5px solid var(--red)}
+  #modal .hd{border-bottom:3px solid var(--line);padding-bottom:14px;margin-bottom:18px}
+  #modal .hd .n{font-size:clamp(15px,1.7vw,21px)}
+  #modal .hd .t{font-size:clamp(28px,4vw,54px)}
+  #modal .hd .m{font-size:clamp(14px,1.6vw,20px);padding:4px 16px}
+  #modal .row{gap:18px;margin-bottom:16px}
+  #modal .row .lb{width:clamp(66px,7vw,104px);font-size:clamp(13px,1.4vw,18px);padding-top:6px}
+  #modal .sit p{font-size:clamp(20px,2.6vw,34px)}
+  #modal .say p{font-size:clamp(23px,3.2vw,44px)}
+  #modal .say .br{font-size:clamp(14px,1.6vw,21px);margin-top:8px}
+  #modal .act p{font-size:clamp(17px,2vw,27px)}
+  #modal .key{font-size:clamp(19px,2.3vw,31px);padding:12px 18px;margin-top:18px}
+  #close{position:absolute;top:10px;right:16px;border:0;background:transparent;
+         font-size:40px;line-height:1;color:var(--sub);cursor:pointer}
+  .nav{display:flex;gap:10px;justify-content:center;margin-top:20px}
+  .nav button{border:0;border-radius:12px;background:#e3e7ec;color:var(--ink);
+              padding:12px 26px;font-size:clamp(16px,1.9vw,24px);font-weight:800;cursor:pointer}
+  .nav button:disabled{opacity:.35;cursor:default}
+  [hidden]{display:none!important}
+
+  @media print{
+    #back,.tabs{display:none!important}
+    body{background:#fff}
+    .wrap{max-width:none;padding:0}
+    .deck{grid-template-columns:1fr 1fr;gap:8px}
+    .card{break-inside:avoid;border-color:#000}
+    .key{background:#fff;color:#000;border:1.5px solid #000}
+    .key b{color:#000}
+    .g-row{break-inside:avoid}
+    .g-foot{background:#fff;color:#000;border:3px solid #000}
+    .g-foot b{color:#000}
+  }
+</style>
+
+<div class="wrap">
+  <div class="tabs" role="tablist">
+    <button role="tab" aria-selected="true"  data-t="t1">인사말</button>
+    <button role="tab" aria-selected="false" data-t="t2">돌발상황 카드</button>
+  </div>
+
+  <!-- 탭 1 -->
+  <section id="t1">
+    <div class="g-head">
+      <h1>꼭 해야 하는 말</h1>
+      <div class="s">안정된 직업생활 · 주문 받기</div>
+    </div>
+    <div class="g-list">
+      <div class="g-row"><div class="g-n">1</div>
+        <div class="g-say">어서 오세요</div><div class="g-when">손님이 오면</div></div>
+      <div class="g-row"><div class="g-n">2</div>
+        <div class="g-say">주문 도와드리겠습니다</div><div class="g-when">주문 받기 전</div></div>
+      <div class="g-row"><div class="g-n">3</div>
+        <div class="g-say">음료는 뭘로 하시겠습니까?</div><div class="g-when">세트를 주문하면</div></div>
+      <div class="g-row"><div class="g-n">4</div>
+        <div class="g-say">카드만 가능합니다</div><div class="g-when">손님이 현금을 내면</div></div>
+      <div class="g-row"><div class="g-n">5</div>
+        <div class="g-say">감사합니다</div><div class="g-when">음식을 전달하고 나서</div></div>
+    </div>
+    <div class="g-foot">기분이 좋아도, 바빠도, 손님이 많아도 <b>매번 똑같이</b> 말합니다</div>
+  </section>
+
+  <!-- 탭 2 -->
+  <section id="t2" hidden>
+    <div class="c-head">
+      <h1>돌발상황 카드</h1>
+      <div class="s">빨간 테두리는 매니저를 불러야 하는 상황 &nbsp;|&nbsp; 카드를 누르면 크게 보입니다</div>
+    </div>
+    <div class="deck" id="deck"></div>
+  </section>
+</div>
+
+<div id="back" hidden>
+  <div id="modal">
+    <button id="close" aria-label="닫기">&times;</button>
+    <div id="mbody"></div>
+    <div class="nav">
+      <button id="prev">← 이전</button>
+      <button id="next">다음 →</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const CARDS = [
+ { t:'업무 교대', mgr:false,
+   sit:['4시간 근무가 끝나 다음 사람과 교대할 시간이다.'],
+   say:['"교대하겠습니다."'],
+   act:['받고 있던 주문은 끝까지 마치고 넘긴다.','남은 일을 다음 사람에게 말로 알려 준다.'],
+   key:'하던 일은 <b>끝내고</b> 넘긴다' },
+
+ { t:'재고가 없어요', mgr:false,
+   sit:['손님이 시킨 메뉴의 재료가 떨어졌다.'],
+   say:['"죄송하지만 재고가 없어서,<br>다른 것으로 주문하시겠습니까?"'],
+   act:['그냥 다른 걸 담지 않는다. 먼저 말씀드린다.'],
+   key:'안 되는 것은 <b>먼저 알린다</b>' },
+
+ { t:'다시 주문할게요', mgr:true,
+   sit:['손님이 주문을 바꾸겠다고 한다.'],
+   say:['<span class="br">한참 뒤에 바꿔 달라고 하면</span>',
+        '"이미 다 조리가 되어서, 변경이 불가능합니다. 죄송합니다."',
+        '<span class="br">→ 매니저에게 도움을 요청한다</span>',
+        '<span class="br">바로 바꿔 달라고 하면</span>',
+        '주문서를 취소하고 다시 주문을 받는다.'],
+   act:['언제 말했는지에 따라 다르게 처리한다.','혼자 정하기 어려우면 매니저를 부른다.'],
+   key:'시점에 따라 <b>대처가 다르다</b>' },
+
+ { t:'햄버거가 잘못 나왔어요', mgr:false,
+   sit:['손님이 시킨 것과 다른 햄버거가 나갔다.'],
+   say:['<span class="br">90도 인사</span>',
+        '"죄송합니다. 금방 다시 만들어드리겠습니다."'],
+   act:['말만 하지 않고 허리를 숙여 인사한다.','바로 다시 만든다.'],
+   key:'사과는 <b>말과 몸</b>으로 함께' },
+
+ { t:'없는 메뉴를 시켜요', mgr:true,
+   sit:['"11번 햄버거 주세요"','(메뉴판에 없는 것을 시킨다)'],
+   say:['"잠시만 기다려 주세요. 확인해 보겠습니다."',
+        '<span class="br">→ 매니저를 부른다</span>'],
+   act:['"그런 거 없어요" 라고 먼저 말하지 않는다.'],
+   key:'없다고 <b>내가 정하지 않는다</b>' },
+
+ { t:'처음 보는 쿠폰이에요', mgr:true,
+   sit:['손님이 처음 보는 종이 쿠폰을 내민다.'],
+   say:['"잠시만 기다려 주세요. 확인 도와드리겠습니다."',
+        '<span class="br">→ 매니저를 부른다</span>'],
+   act:['쿠폰을 두 손으로 받아 들고 기다린다.'],
+   key:'모르는 것은 <b>확인받고</b> 처리한다' },
+
+ { t:'현금을 내밀어요', mgr:false,
+   sit:['손님이 지폐를 내민다.'],
+   say:['"죄송합니다. 저희는 카드만 가능합니다."'],
+   act:['손으로 밀어내지 않고 말로 안내한다.'],
+   key:'정해진 안내는 <b>그대로</b>' },
+
+ { t:'말이 빨라서 못 알아들었어요', mgr:false,
+   sit:['손님이 빠르게 웅얼거리며 주문한다.'],
+   say:['"죄송합니다. 다시 한 번 말씀해 주시겠습니까?"'],
+   act:['아는 척 넘어가지 않는다.','손님을 보고 여쭙는다.'],
+   key:'다시 묻는 건 <b>부끄러운 게 아니다</b>' },
+
+ { t:'화장실 어디예요?', mgr:false,
+   sit:['손님이 주문과 상관없는 것을 물어본다.'],
+   say:['"저쪽에 있습니다."',
+        '<span class="br">모르면</span>',
+        '"잠시만요, 확인해 드리겠습니다."'],
+   act:['귀찮은 표정을 짓지 않는다.'],
+   key:'손님의 <b>모든 질문</b>에 답한다' },
+
+ { t:'아직도 안 나왔어요?', mgr:false,
+   sit:['손님이 음식이 늦다고 재촉한다.'],
+   say:['"죄송합니다. 바로 확인해 보겠습니다."',
+        '<span class="br">확인하고 나서</span>',
+        '"아, 금방 나올 것 같습니다!"',
+        '또는 "아, 주문이 좀 밀려서요.<br>죄송합니다. 금방 가져다드리겠습니다."'],
+   act:['변명하지 않는다.','확인하는 시늉만 하지 말고 실제로 본다.'],
+   key:'기다리는 손님에게는 <b>상황을 알려 준다</b>' },
+];
+
+const $ = id => document.getElementById(id);
+const li = a => a.map(x => `<p>${x}</p>`).join('');
+const body = (c, i) => `
+    <div class="hd">
+      <span class="n">카드 ${i + 1}</span>
+      <span class="t">${c.t}</span>
+      ${c.mgr ? '<span class="m">매니저 호출</span>' : ''}
+    </div>
+    <div class="row sit"><div class="lb">손님</div><div class="bd">${li(c.sit)}</div></div>
+    <div class="row say"><div class="lb">할 말</div><div class="bd">${li(c.say)}</div></div>
+    <div class="row act"><div class="lb">모범행동</div><div class="bd">${li(c.act)}</div></div>
+    <div class="key">${c.key}</div>`;
+
+const deck = $('deck');
+deck.innerHTML = CARDS.map((c, i) =>
+  `<div class="card${c.mgr ? ' mgr' : ''}" data-i="${i}">${body(c, i)}</div>`).join('');
+
+let cur = 0;
+function openCard(i){
+  cur = i;
+  const c = CARDS[i];
+  $('mbody').innerHTML = body(c, i);
+  $('modal').className = c.mgr ? 'mgr' : '';
+  $('prev').disabled = (i === 0);
+  $('next').disabled = (i === CARDS.length - 1);
+  $('back').hidden = false;
+  $('modal').scrollTop = 0;
+}
+function closeCard(){ $('back').hidden = true; }
+deck.onclick = e => { const t = e.target.closest('.card'); if (t) openCard(+t.dataset.i); };
+$('close').onclick = closeCard;
+$('back').onclick = e => { if (e.target === $('back')) closeCard(); };
+$('prev').onclick = () => openCard(cur - 1);
+$('next').onclick = () => openCard(cur + 1);
+document.onkeydown = e => {
+  if ($('back').hidden) return;
+  if (e.key === 'Escape') closeCard();
+  if (e.key === 'ArrowLeft'  && cur > 0) openCard(cur - 1);
+  if (e.key === 'ArrowRight' && cur < CARDS.length - 1) openCard(cur + 1);
+};
+
+document.querySelectorAll('.tabs button').forEach(b => {
+  b.onclick = () => {
+    document.querySelectorAll('.tabs button').forEach(x => x.setAttribute('aria-selected','false'));
+    b.setAttribute('aria-selected','true');
+    ['t1','t2'].forEach(id => $(id).hidden = (id !== b.dataset.t));
+    closeCard();
+  };
+});
+</script>
