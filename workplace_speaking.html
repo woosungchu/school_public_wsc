@@ -1,0 +1,925 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>직장에서 말하기</title>
+<style>
+  :root{
+    --ink:#15171C; --sub:#767C86; --faint:#A6ACB5;
+    --bg:#F2EFE9; --card:#FFFFFF; --line:#E3DFD7;
+    --A:#B4543A; --B:#2F6E8F;
+    --r1:2.2vmin; --r2:3.4vmin;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{height:100%; margin:0;}
+  body{background:var(--bg); color:var(--ink); overflow:hidden; display:flex; flex-direction:column;
+       font-family:'Pretendard','맑은 고딕','Malgun Gothic',system-ui,sans-serif;
+       font-weight:500; letter-spacing:-.022em;}
+  button{font:inherit; letter-spacing:inherit; cursor:pointer; border:0; background:none; color:inherit;}
+
+  header{flex:none; display:flex; align-items:center; gap:1.6vmin; padding:2.2vmin 3.4vmin 1.2vmin;}
+  header h1{margin:0; font-size:3.2vmin; font-weight:800; letter-spacing:-.045em;}
+  header .sp{flex:1;}
+  .seg{display:flex; background:var(--card); border-radius:99vmin; padding:.4vmin;
+       box-shadow:0 0 0 .22vmin var(--line);}
+  .seg button{border-radius:99vmin; padding:.9vmin 2.6vmin; font-size:2vmin; font-weight:800; color:var(--sub);}
+  .seg button.on{background:var(--ink); color:#fff;}
+  .pill{background:var(--card); border:.26vmin solid var(--line); border-radius:99vmin;
+        padding:1vmin 2.2vmin; font-size:1.9vmin; font-weight:700; color:var(--sub);
+        box-shadow:0 .25vmin .7vmin rgba(20,18,14,.05);}
+  .pill.on{background:var(--ink); border-color:var(--ink); color:#fff;}
+  .pill:active{transform:translateY(.2vmin);}
+
+  .board{flex:1; min-height:0; overflow:auto; padding:0 3.4vmin 3vmin;}
+  .grp{margin-bottom:2vmin;}
+  .glabel{display:flex; align-items:baseline; gap:1.2vmin; margin:0 0 1.2vmin .3vmin;}
+  .glabel b{font-size:2.3vmin; font-weight:800;}
+  .glabel span{font-size:1.8vmin; color:var(--sub);}
+  .cards{display:grid; grid-template-columns:repeat(auto-fill,minmax(26vmin,1fr)); gap:1.3vmin;}
+  .card{background:var(--card); border-radius:var(--r1); padding:1.8vmin 1.4vmin;
+        display:flex; flex-direction:column; align-items:center; gap:1vmin;
+        box-shadow:0 .3vmin 1vmin rgba(20,18,14,.07), 0 0 0 .18vmin rgba(20,18,14,.04);
+        transition:transform .1s ease, box-shadow .1s ease;}
+  .card:hover{transform:translateY(-.35vmin); box-shadow:0 .9vmin 2.2vmin rgba(20,18,14,.11);}
+  .card:active{transform:translateY(0) scale(.985);}
+  .chip{width:8vmin; height:8vmin; border-radius:50%; display:grid; place-items:center; flex:none;}
+  .chip svg{width:4.8vmin; height:4.8vmin; stroke-width:3.6;}
+  .card b{font-size:2.3vmin; font-weight:800; letter-spacing:-.04em; text-align:center;}
+  .card small{font-size:1.5vmin; color:var(--sub); font-weight:500; text-align:center; line-height:1.3;}
+
+  .scrim{position:fixed; inset:0; background:rgba(16,14,11,.55); backdrop-filter:blur(.8vmin);
+         display:none; align-items:center; justify-content:center; padding:3vmin; z-index:60;}
+  .scrim.on{display:flex;}
+  .modal{background:var(--card); border-radius:3.4vmin; width:min(150vmin,100%); height:100%;
+         overflow:hidden; display:flex; flex-direction:column;
+         box-shadow:0 3vmin 9vmin rgba(0,0,0,.4);}
+  .mhead{display:flex; align-items:center; gap:1.6vmin; padding:2vmin 3vmin; color:#fff; flex:none;}
+  .mhead b{font-size:2.5vmin; font-weight:800;}
+  .mhead em{font-style:normal; font-size:1.8vmin; opacity:.72;}
+  .mhead .x{margin-left:auto; width:5vmin; height:5vmin; border-radius:50%;
+            background:rgba(255,255,255,.18); color:#fff; font-size:2.5vmin; display:grid;
+            place-items:center; flex:none;}
+  .tabs{flex:none; display:flex; gap:.8vmin; padding:1.4vmin 3vmin 0;}
+  .tabs button{border-radius:1.6vmin 1.6vmin 0 0; padding:1.1vmin 2.6vmin;
+               font-size:2vmin; font-weight:800; color:var(--sub); background:#F2EFE9;}
+  .tabs button.on{background:var(--ink); color:#fff;}
+
+  .body{flex:1; min-height:0; overflow:auto; padding:3vmin 4vmin;}
+  .row2{display:flex; align-items:center; gap:4vmin;}
+  .bigchip{flex:none; width:26vmin; height:26vmin; border-radius:5vmin; display:grid; place-items:center;}
+  .bigchip svg{width:15vmin; height:15vmin; stroke-width:3.4;}
+  .rt{flex:1; min-width:0;}
+  .bubble{position:relative; background:#FAF8F4; border:.42vmin solid var(--ink); border-radius:3vmin;
+          padding:3vmin; font-size:5vmin; font-weight:800; line-height:1.36;
+          letter-spacing:-.05em; word-break:keep-all;}
+  .bubble.long{font-size:3.8vmin;}
+  .bubble::before{content:""; position:absolute; left:-2.3vmin; top:4.4vmin;
+        border:2.3vmin solid transparent; border-right-color:var(--ink);}
+  .bubble::after{content:""; position:absolute; left:-1.55vmin; top:4.7vmin;
+        border:2.05vmin solid transparent; border-right-color:#FAF8F4;}
+  .tap{margin:1.1vmin 0 0 .5vmin; font-size:1.7vmin; color:var(--faint);}
+  .facts{margin-top:2.4vmin; display:flex; flex-direction:column; gap:1vmin;}
+  .fact{display:flex; gap:1.4vmin; align-items:baseline; font-size:2.1vmin; color:var(--sub);
+        word-break:keep-all;}
+  .fact b{flex:none; font-size:1.6vmin; font-weight:800; color:#fff; background:var(--ink);
+          border-radius:99vmin; padding:.5vmin 1.3vmin; letter-spacing:0;}
+
+  .line{display:flex; gap:1.6vmin; align-items:flex-start; margin-bottom:1.6vmin;}
+  .who{flex:none; width:11vmin; padding-top:1.1vmin; font-size:1.7vmin;
+       font-weight:800; color:var(--faint); text-align:right;}
+  .who.me{color:var(--ink);}
+  .say{flex:1; background:#FAF8F4; border-radius:2.2vmin; padding:1.8vmin 2.2vmin;
+       font-size:2.9vmin; font-weight:600; line-height:1.42; word-break:keep-all;}
+  .say:active{background:#EDEAE4;}
+  .note{margin:1.2vmin 0 1.6vmin 12.6vmin; font-size:2vmin; color:var(--sub);
+        background:#EFEBE3; border-radius:1.6vmin; padding:1.2vmin 1.8vmin; word-break:keep-all;}
+  .ans{flex:1; background:#fff; border:.42vmin solid var(--ink); border-radius:2.4vmin;
+       padding:2vmin 2.4vmin; font-size:3.4vmin; font-weight:800; line-height:1.34;
+       letter-spacing:-.045em; word-break:keep-all;}
+  .ans.ph{border-style:dashed; border-color:var(--line); color:var(--faint);
+          letter-spacing:.4em; font-weight:500;}
+  .badge{display:inline-flex; align-items:center; gap:.7vmin; border-radius:99vmin;
+         padding:.5vmin 1.4vmin; font-size:1.5vmin; font-weight:800; color:#fff; margin-bottom:.9vmin;}
+  .hint{margin:.9vmin 0 0 .3vmin; font-size:1.8vmin; color:var(--sub); word-break:keep-all;}
+  .dim{opacity:.42;}
+
+  .qwrap{text-align:center;}
+  .qwrap h2{margin:0; font-size:3.8vmin; font-weight:800; letter-spacing:-.045em;}
+  .qwrap h2 small{display:block; font-size:2vmin; color:var(--sub); font-weight:500; margin-top:.9vmin;}
+  .opts{display:flex; flex-wrap:wrap; gap:1.6vmin; justify-content:center; margin-top:3vmin;}
+  .opt{display:flex; align-items:center; gap:1.6vmin; background:#FAF8F4; border-radius:2.4vmin;
+       padding:2.2vmin 2.8vmin; font-size:2.9vmin; font-weight:800; letter-spacing:-.04em;
+       min-width:26vmin; justify-content:center; box-shadow:0 0 0 .3vmin var(--line) inset;}
+  .opt svg{width:4.8vmin; height:4.8vmin; stroke-width:3.4; color:var(--faint);}
+  .opt.ok{background:#E9F5EE; box-shadow:0 0 0 .45vmin #2F7D5C inset;}
+  .opt.ok svg{color:#2F7D5C;}
+  .opt.no{background:#FBEDEB; box-shadow:0 0 0 .45vmin #C0453B inset; opacity:.5;}
+  .fb{margin-top:2.6vmin; font-size:2.4vmin; min-height:3.6vmin; font-weight:700;}
+  .fb.good{color:#2F7D5C;} .fb.bad{color:#C0453B;}
+
+  .mfoot{flex:none; display:flex; align-items:center; gap:1.4vmin;
+         padding:1.6vmin 3vmin 2.2vmin; border-top:.2vmin solid var(--line);}
+  .mbtn{background:#F2EFE9; border-radius:1.8vmin; padding:1.4vmin 2.8vmin; font-size:2.1vmin;
+        font-weight:700; color:var(--ink);}
+  .mbtn.dark{background:var(--ink); color:#fff;}
+  .mbtn:disabled{opacity:.3;}
+  .mfoot .mid{flex:1; text-align:center; font-size:1.8vmin; color:var(--faint);}
+
+  .panel{position:fixed; top:8vmin; right:3.4vmin; background:var(--card); border-radius:2.4vmin;
+         padding:2vmin 2.2vmin; z-index:70; display:none; max-width:54vmin;
+         box-shadow:0 1.6vmin 4.4vmin rgba(20,18,14,.22), 0 0 0 .2vmin var(--line);}
+  .panel.on{display:block;}
+  .panel h3{margin:0 0 1vmin; font-size:1.6vmin; color:var(--faint); font-weight:800;}
+  .panel .row{display:flex; gap:.8vmin; margin-bottom:1.6vmin; flex-wrap:wrap;}
+  .panel .row:last-child{margin-bottom:0;}
+  .panel select{font:inherit; font-size:1.8vmin; padding:.8vmin 1.2vmin; border-radius:1.2vmin;
+                border:.22vmin solid var(--line); background:#fff; max-width:48vmin;}
+
+  .ref{position:fixed; inset:0; background:rgba(16,14,11,.55); display:none;
+       align-items:center; justify-content:center; padding:4vmin; z-index:80;}
+  .ref.on{display:flex;}
+  .refbox{background:var(--card); border-radius:3vmin; padding:3vmin 3.4vmin; max-width:120vmin;
+          max-height:100%; overflow:auto;}
+  .refbox h2{margin:0 0 .6vmin; font-size:2.8vmin;}
+  .refbox h4{margin:2.4vmin 0 1vmin; font-size:2.1vmin;}
+  .mv{display:flex; gap:1.4vmin; align-items:baseline; margin-bottom:1vmin; font-size:2vmin;}
+  .mv b{flex:none;}
+  .mv span{color:var(--sub);}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>직장에서 말하기</h1>
+  <div class="seg" id="seg">
+    <button data-lev="basic" class="on">기본</button>
+    <button data-lev="adv">심화</button>
+  </div>
+  <div class="sp"></div>
+  <button class="pill" id="goref">기술 보기</button>
+  <button class="pill" id="gear">설정</button>
+  <button class="pill" id="full">전체화면</button>
+</header>
+
+<div class="panel" id="panel">
+  <h3>말 길이 (기본)</h3>
+  <div class="row">
+    <button class="pill on" data-lv="0">쉬움</button>
+    <button class="pill" data-lv="2">어려움</button>
+  </div>
+  <h3>골라보기 보기 개수</h3>
+  <div class="row">
+    <button class="pill" data-n="2">2개</button>
+    <button class="pill on" data-n="3">3개</button>
+    <button class="pill" data-n="4">4개</button>
+  </div>
+  <h3>목소리</h3>
+  <div class="row"><select id="voice"></select></div>
+  <h3>말 속도</h3>
+  <div class="row">
+    <button class="pill" data-rate="0.7">느리게</button>
+    <button class="pill on" data-rate="0.85">보통</button>
+    <button class="pill" data-rate="1">빠르게</button>
+  </div>
+  <h3>소리로 읽어주기</h3>
+  <div class="row">
+    <button class="pill on" data-tts="1">켜기</button>
+    <button class="pill" data-tts="0">끄기</button>
+  </div>
+</div>
+
+<div class="board" id="board"></div>
+<div class="scrim" id="scrim"><div class="modal" id="modal"></div></div>
+<div class="ref" id="refs"><div class="refbox" id="refbox"></div></div>
+
+<script>
+const B_ICONS = {
+  clock: '<circle cx="32" cy="34" r="21"/><path d="M32 22v13l9 6"/><path d="M22 9l-8 6M42 9l8 6"/>',
+  bed: '<path d="M8 44V24M8 32h48v12M56 44v-8"/><circle cx="20" cy="26" r="6"/><path d="M28 32h20v-6a4 4 0 0 0-4-4H30"/>',
+  home: '<path d="M10 30L32 12l22 18"/><path d="M16 28v22h32V28"/><path d="M26 50V36h12v14"/>',
+  check: '<circle cx="32" cy="32" r="22"/><path d="M21 33l8 8 15-16"/>',
+  question: '<circle cx="32" cy="32" r="22"/><path d="M25 25a7 7 0 1 1 9 7v5"/><circle cx="34" cy="45" r="2.4" fill="currentColor" stroke="none"/>',
+  hand: '<path d="M24 36V16a4 4 0 0 1 8 0v16"/><path d="M32 30V13a4 4 0 0 1 8 0v19"/><path d="M40 32V19a4 4 0 0 1 8 0v22c0 8-6 13-14 13s-14-5-14-13v-6l-5-6a4 4 0 0 1 6-5l5 6"/>',
+  broken: '<circle cx="32" cy="32" r="20"/><path d="M30 12.2l5.5 9.8-8.5 5 8 7-5.5 8 3.5 9.8"/><path d="M9 52l4.5-3.5M55 52L50.5 48.5"/>',
+  toilet: '<circle cx="32" cy="13" r="6"/><path d="M22 24h20l4 14h-6v18H24V38h-6z"/>',
+  hurt: '<rect x="11" y="25" width="42" height="16" rx="8" transform="rotate(-30 32 33)"/><rect x="24" y="25" width="16" height="16" transform="rotate(-30 32 33)"/><circle cx="28" cy="31" r="1.6" fill="currentColor" stroke="none"/><circle cx="35" cy="29" r="1.6" fill="currentColor" stroke="none"/><circle cx="29" cy="37" r="1.6" fill="currentColor" stroke="none"/><circle cx="36" cy="35" r="1.6" fill="currentColor" stroke="none"/>',
+  ask: '<path d="M10 16a6 6 0 0 1 6-6h32a6 6 0 0 1 6 6v20a6 6 0 0 1-6 6H28l-12 10V42h-0a6 6 0 0 1-6-6z"/><path d="M26 21a6 6 0 1 1 8 6v3"/><circle cx="34" cy="36" r="2.2" fill="currentColor" stroke="none"/>'
+};
+const GROUPS = [
+  { key: 'inout',  name: '출근과 퇴근', color: '#E8734A' },
+  { key: 'during', name: '일하는 중', color: '#3D8E6B' },
+  { key: 'body',   name: '몸이 불편할 때', color: '#5A6FB5' }
+];
+
+const SITUATIONS = [
+  { id: 'late', g: 'inout', icon: 'clock', title: '지각',
+    when: '출근 시간에 늦었을 때',
+    who: '점장님께',
+    lv: ['늦었어요', '늦어서 죄송해요', '늦어서 죄송합니다.'],
+    after: '인사하고 바로 자리로 가서 일을 시작합니다.',
+    why: '늦은 것보다 아무 말 없이 들어와 앉는 것이 더 문제가 됩니다.' },
+
+  { id: 'leave', g: 'inout', icon: 'home', title: '퇴근 인사',
+    when: '일이 끝나고 퇴근할 때',
+    who: '남아 있는 사람들에게',
+    lv: ['안녕히 계세요', '먼저 가 보겠습니다', '내일 뵙겠습니다.'],
+    after: '인사를 받으면 가볍게 목례하고 나갑니다.',
+    why: '인사 없이 사라지면 같이 일하는 사람들이 가장 불편해합니다. 퇴근 인사는 다음 날을 위한 것입니다.' },
+
+  { id: 'done', g: 'during', icon: 'check', title: '일 끝냄',
+    when: '맡은 일을 끝냈을 때',
+    who: '시킨 사람에게',
+    lv: ['다 했어요', '다 했습니다', '말씀하신 일을 다 했습니다. 더 시키실 일 있습니까?'],
+    after: '다음 일을 받을 때까지 자리에서 기다립니다.',
+    why: '끝내고 가만히 있으면 노는 것으로 보입니다. 알려야 일을 더 받습니다.' },
+
+  { id: 'dunno', g: 'during', icon: 'question', title: '모름',
+    when: '어떻게 하는지 모를 때',
+    who: '옆 사람이나 시킨 사람에게',
+    lv: ['모르겠어요', '이거 모르겠어요', '이것은 어떻게 하는지 잘 모르겠습니다. 알려 주시겠습니까?'],
+    after: '알려 주면 끝까지 보고 따라 합니다.',
+    why: '모르는데 그냥 하면 다시 해야 합니다. 묻는 것은 혼나는 일이 아닙니다.' },
+
+  { id: 'help', g: 'during', icon: 'hand', title: '도움 요청',
+    when: '혼자 하기 힘들 때, 무거울 때',
+    who: '가까이 있는 사람에게',
+    lv: ['도와주세요', '저 좀 도와주세요', '저 좀 도와주실 수 있나요?'],
+    after: '도와주면 고맙다고 인사합니다.',
+    why: '혼자 버티다 다치면 산업재해입니다. 부르는 것이 안전입니다.' },
+
+  { id: 'mistake', g: 'during', icon: 'broken', title: '실수',
+    when: '실수했을 때, 물건을 깨뜨렸을 때',
+    who: '숨기지 말고 바로 시킨 사람에게',
+    lv: ['죄송해요', '제가 실수했어요', '죄송합니다. 제가 실수했습니다.'],
+    after: '어떻게 할지 알려 줄 때까지 기다립니다.',
+    why: '숨기면 나중에 더 큰 일이 됩니다. 바로 말하면 같이 치워 줍니다.' },
+
+  { id: 'toilet', g: 'body', icon: 'toilet', title: '화장실',
+    when: '화장실에 가야 할 때',
+    who: '옆 사람이나 시킨 사람에게',
+    lv: ['화장실', '화장실 가고 싶어요', '저 화장실 좀 다녀와도 되겠습니까?'],
+    after: '다녀와서 "왔습니다" 하고 일을 이어서 합니다.',
+    why: '참다가 실수하면 본인이 가장 힘듭니다. 묻고 가면 됩니다.' },
+
+  { id: 'hurt', g: 'body', icon: 'hurt', title: '아픔',
+    when: '다쳤을 때, 아플 때',
+    who: '가장 가까운 사람에게 바로',
+    lv: ['아파요', '여기 아파요', '제가 여기를 다쳤습니다. 많이 아픕니다.'],
+    after: '어디가 아픈지 손으로 가리킵니다.',
+    why: '참으면 아무도 모릅니다. 바로 말해야 병원에 갑니다.' }
+];
+const REPLY = {
+  late:    '네, 어서 들어와서 일 시작해요.',
+  leave:   '네, 오늘 수고했어요. 내일 봐요.',
+  done:    '잘했어요. 그럼 이번엔 이걸 해 볼까요?',
+  dunno:   '그래요. 이렇게 하는 거예요. 보세요.',
+  help:    '그럼요. 같이 해요.',
+  mistake: '괜찮아요. 다치지 않았어요? 같이 치워요.',
+  toilet:  '네, 다녀오세요.',
+  hurt:    '어디가 아파요? 어디 봐요.'
+};
+
+/* 점장님(교사)이 먼저 던지는 말.
+   들으면 무슨 상황인지 바로 알 수 있어야 한다. 돌려서 묻지 않는다. */
+const CUES = {
+  late: [
+    'XX 씨, 우리 가게 아홉 시부터인데 지금 아홉 시 십 분이에요. 방금 들어왔죠?',
+    '다른 사람들은 아홉 시에 다 왔는데, 오늘 지각한 사람 누구죠?',
+    '어, XX 씨 지금 왔네요. 오늘 많이 늦었어요.'
+  ],
+  dunno: [
+    'XX 씨, 아직 그 기계 안 돌렸네요. 쓰는 방법을 몰라요?',
+    '아까 시킨 일을 안 하고 그냥 서 있던데, 어떻게 하는지 모르겠어요?',
+    '그거 오늘 처음 해 보는 거죠? 할 줄 알아요?'
+  ],
+  help: [
+    'XX 씨, 그 우유 박스 되게 무거운데 혼자 들고 있네요?',
+    '그거 혼자 들다가 다쳐요. 무거우면 그냥 들지 마세요.',
+    'XX 씨 얼굴이 빨개졌는데, 그 박스 혼자 들 수 있어요?'
+  ],
+  done: [
+    'XX 씨, 아까부터 가만히 서 있는데 일 안 해요?',
+    '컵 정리 다 끝났어요? 아직 하는 중이에요?',
+    'XX 씨 왜 그렇게 서 있어요? 할 일 없어요?'
+  ],
+  toilet: [
+    'XX 씨, 아까부터 자리에서 계속 왔다 갔다 하는데 무슨 일 있어요?',
+    'XX 씨 표정이 급해 보이는데, 지금 어디 가야 해요?',
+    '계속 참고 있는 것 같은데, 어디 가고 싶어요?'
+  ],
+  mistake: [
+    '어, 혹시 아까 큰 소리가 났는데 뭐가 깨졌어요?',
+    '여기 바닥에 유리 조각이 있는데, 누가 떨어뜨렸어요?',
+    '컵이 한 개 부족한데요. XX 씨 혹시 깨뜨렸어요?'
+  ],
+  hurt: [
+    'XX 씨, 지금 손에서 피가 나는데요? 어디 다쳤어요?',
+    '아까부터 손을 계속 잡고 있는데, 어디 아파요?',
+    'XX 씨 얼굴이 아주 안 좋아요. 어디 아픈 거 아니에요?'
+  ],
+  leave: [
+    'XX 씨, 열두 시 됐네요. 이제 집에 가는 거죠?',
+    '어 가방 챙기네요. 오늘 일 끝났어요?',
+    '오늘 수고했어요. 이제 퇴근하는 거죠?'
+  ]
+};
+
+/* 하루 시간 순서 */
+const TALK_ORDER = ['late','dunno','help','done','toilet','mistake','hurt','leave'];
+/* 직장에서 말하기 — 심화
+   갈래 A = 고객 응대(기분 배려) / 갈래 B = 직장 내부(정확하게 주고받기)
+
+   B 설계 원칙
+   - 짧고 분명한 지시는 그냥 "네."(b1). 이것이 기본이다.
+   - 장소·숫자·기한이 들어간 지시만 되읽는다(b2). 매번 되읽으면 상대가 피로해진다.
+   - 애매하면 묻지 말고 조금 해 본 뒤 "이렇게 하면 될까요?"(b3).
+   - 수량·장소처럼 없으면 아예 시작할 수 없는 것만 묻는다(b4).
+   - 한 장면에 b4 는 한 번을 넘기지 않는다. */
+
+const MOVES = {
+  a1: { t: '호칭·감사',      d: '"고객님", "감사합니다"' },
+  a2: { t: '주문 복창',      d: '들은 걸 되읽고 "맞으십니까?" — 손님에게는 복창이 예의다' },
+  a3: { t: '안 정해진 것 여쭙기',
+        d: '"사이즈는 어떻게 하시겠습니까?" / "A로 하시겠습니까, 아니면 B로 하시겠습니까?"' },
+  a4: { t: '양해 구하기',    d: '명령이 아닌 질문형 — "~해 주시겠습니까?"' },
+  a5: { t: '쿠션어',         d: '"죄송하지만", "번거로우시겠지만", "괜찮으시다면"' },
+  a6: { t: '나쁜 소식 완충', d: '사과 → 사실 → 대안, 세 덩어리로' },
+  a7: { t: '마무리 배웅',    d: '"감사합니다. 안녕히 가세요."' },
+  b1: { t: '짧게 받기',
+        d: '"네." / "네, 알겠습니다." — 짧고 분명한 지시는 이걸로 충분하다. 이것이 기본이다' },
+  b2: { t: '되읽어 받기',
+        d: '장소·숫자·기한이 든 지시만 되읽는다 — "네, 3층 교무실에 갖다 놓겠습니다." 매번 되읽으면 상대가 피로해진다' },
+  b3: { t: '해보고 확인받기',
+        d: '조금 해 본 뒤 "이렇게 하면 될까요?" — 미리 묻는 것보다 이쪽이 낫다' },
+  b4: { t: '꼭 필요한 것만 묻기',
+        d: '수량·장소처럼 모르면 시작조차 못 하는 것만. 자주 물으면 상대가 피로해진다' },
+  b5: { t: '모르면 묻기', d: '처음 쓰는 기계나 해 본 적 없는 일은 만지기 전에 묻는다' },
+  b6: { t: '완료 보고',   d: '"말씀하신 ○○ 다 했습니다." — 숫자까지 같이' },
+  b7: { t: '문제 보고',   d: '"○○가 ~한 상태입니다." — 숫자까지. 혼자 판단하지 않는다' }
+};
+
+/* who: 상대 대사 / me: 내 차례 {move, hint, model} / note: 상황 설명 */
+const SCENES = [
+  {
+    id: 'office', track: 'B', name: '사무보조', place: '사무실', other: '과장님', icon: 'doc',
+    turns: [
+      { who: '○○ 씨, 이거 복사 좀 해 줄래요?' },
+      { me: 1, move: 'b4', hint: '부수를 모르면 시작조차 못 합니다. 이건 물어야 합니다.',
+        model: '몇 부 할까요?' },
+      { who: '10부요.' },
+      { me: 1, move: 'b2', hint: '더 묻지 않습니다. 나머지는 해 보면서 맞춰 갑니다.',
+        model: '네, 10부 하겠습니다.' },
+      { note: '양면인지 단면인지는 듣지 못했습니다. 한 부만 먼저 복사해 봤습니다.' },
+      { me: 1, move: 'b3', hint: '"양면으로 할까요?" 하고 미리 묻는 것보다 보여주는 쪽이 낫습니다.',
+        model: '한 부 먼저 해 봤습니다. 단면으로 이렇게 하면 될까요?' },
+      { who: '네, 그렇게 하면 돼요.' },
+      { note: '복사기 용지함이 비었습니다. 용지 넣는 법을 모릅니다.' },
+      { me: 1, move: 'b5', hint: '모르는 기계는 아무 버튼이나 누르지 않습니다.',
+        model: '복사기에 용지가 없습니다. 넣는 방법을 아직 모릅니다. 알려 주시겠습니까?' },
+      { who: '아 여기 이렇게 열고 넣으면 돼요.' },
+      { note: '복사를 다 끝냈습니다.' },
+      { me: 1, move: 'b6', hint: '끝내고 가만히 있으면 노는 것으로 보입니다.',
+        model: '말씀하신 복사 10부 다 했습니다.' },
+      { who: '고마워요. 그거 3층 교무실에 갖다 주세요.' },
+      { me: 1, move: 'b2', hint: '되묻지 않습니다. 확인하고 바로 갑니다.',
+        model: '네, 3층 교무실에 갖다 놓겠습니다.' },
+      { note: '교무실에 갔는데 아무도 없습니다.' },
+      { me: 1, move: 'b7', hint: '아무 데나 두고 오지 않습니다.',
+        model: '교무실에 아무도 안 계십니다. 어떻게 할까요?' }
+    ]
+  },
+  {
+    id: 'shelter', track: 'B', name: '보호작업장', place: '작업장', other: '반장님', icon: 'box',
+    turns: [
+      { who: '○○ 씨, 오늘은 이 상자 포장 좀 해 줘요.' },
+      { me: 1, move: 'b4', hint: '개수를 모르면 시작할 수 없습니다.',
+        model: '몇 개 할까요?' },
+      { who: '50개요. 점심 전까지 해 주면 좋겠어요.' },
+      { me: 1, move: 'b2', hint: '개수와 시간을 짧게 되읽고 바로 시작합니다.',
+        model: '네, 점심 전까지 50개 하겠습니다.' },
+      { note: '테이프를 어디에 붙이는지 못 봤습니다. 한 개만 먼저 싸 봤습니다.' },
+      { me: 1, move: 'b3', hint: '',
+        model: '한 개 먼저 싸 봤습니다. 이렇게 하면 될까요?' },
+      { who: '네 맞아요. 그렇게 하세요.' },
+      { note: '작업을 하다 보니 부품이 45개밖에 없습니다.' },
+      { me: 1, move: 'b7', hint: '"없어요"로 끝내지 않습니다. 숫자를 말합니다.',
+        model: '부품이 45개밖에 없습니다. 5개가 모자랍니다. 어떻게 할까요?' },
+      { who: '아 그럼 일단 45개만 해 줘요.' },
+      { note: '포장하려는데 상자 하나가 찌그러져 있습니다.' },
+      { me: 1, move: 'b7', hint: '혼자 판단해서 버리거나 그냥 쓰지 않습니다.',
+        model: '상자 하나가 찌그러져 있습니다. 이건 어떻게 할까요?' },
+      { who: '그건 빼고 하세요.' },
+      { note: '시간이 모자랍니다. 점심 전에 다 못 끝낼 것 같습니다.' },
+      { me: 1, move: 'b7', hint: '말 안 하고 시간을 넘기는 것이 가장 문제가 됩니다. 미리 말합니다.',
+        model: '지금 30개까지 했습니다. 점심 전까지는 다 못 끝낼 것 같습니다.' },
+      { who: '괜찮아요. 천천히 해요.' },
+      { note: '다 끝냈습니다.' },
+      { me: 1, move: 'b6', hint: '개수까지 같이 보고합니다.',
+        model: '말씀하신 포장 44개 다 했습니다.' }
+    ]
+  },
+  {
+    id: 'meal', track: 'B', name: '급식 보조', place: '급식실', other: '영양사님', icon: 'tray',
+    turns: [
+      { who: '○○ 씨, 저기 쌓인 식판 좀 닦아 줄래요?' },
+      { me: 1, move: 'b1', hint: '되읽을 것이 없습니다. "네." 한마디면 충분합니다.',
+        model: '네.' },
+      { note: '몇 개 닦아서 옆에 쌓아 두었습니다. 닦은 식판을 어디에 두는지는 못 들었습니다.' },
+      { me: 1, move: 'b3', hint: '',
+        model: '몇 개 닦아서 여기 쌓아 뒀습니다. 이렇게 두면 될까요?' },
+      { who: '아 그건 소독기에 넣어 주세요.' },
+      { note: '소독기를 처음 봅니다. 어떻게 켜는지 모릅니다.' },
+      { me: 1, move: 'b5', hint: '모르는 기계는 만지기 전에 묻습니다.',
+        model: '소독기는 처음 써 봅니다. 켜는 방법을 알려 주시겠습니까?' },
+      { who: '여기 이 버튼 누르고 문 닫으면 돼요.' },
+      { note: '닦다가 식판 하나가 깨졌습니다.' },
+      { me: 1, move: 'b7', hint: '숨기지 않습니다. 다친 데가 없어도 바로 말합니다.',
+        model: '죄송합니다. 식판 하나를 깨뜨렸습니다. 어떻게 할까요?' },
+      { who: '괜찮아요. 다치지 않았어요? 조심해서 치워요.' },
+      { note: '다 끝냈습니다.' },
+      { me: 1, move: 'b6', hint: '',
+        model: '식판 다 닦아서 소독기에 넣었습니다.' }
+    ]
+  },
+  {
+    id: 'laundry', track: 'B', name: '세탁·린넨', place: '세탁실', other: '주임님', icon: 'towel',
+    turns: [
+      { who: '○○ 씨, 이 수건들 좀 개어 주세요.' },
+      { me: 1, move: 'b1', hint: '개는 방법을 미리 묻지 않습니다. "네." 하고 일단 시작합니다.',
+        model: '네.' },
+      { note: '개는 방법을 못 들었습니다. 세 장만 먼저 개어 봤습니다.' },
+      { me: 1, move: 'b3', hint: '"어떻게 개면 될까요?" 보다 해 놓고 보여주는 쪽이 낫습니다.',
+        model: '세 장 개어 봤습니다. 이렇게 접으면 될까요?' },
+      { who: '아 그건 세 번 접어서 10장씩 쌓아 주세요.' },
+      { me: 1, move: 'b1', hint: '방금 자세히 들었습니다. 그대로 되읊으면 오히려 어색합니다.',
+        model: '네, 알겠습니다.' },
+      { note: '수건 세 장에 지워지지 않는 얼룩이 있습니다.' },
+      { me: 1, move: 'b7', hint: '몇 장인지 세어서 말합니다.',
+        model: '수건 3장에 얼룩이 있습니다. 이건 어떻게 할까요?' },
+      { who: '아 그건 따로 빼 주세요.' },
+      { note: '다 개고 나니 97장입니다. 원래 100장이었습니다.' },
+      { me: 1, move: 'b6', hint: '숫자가 줄어든 이유를 같이 말합니다. 안 그러면 잃어버린 줄 압니다.',
+        model: '수건 97장 개서 쌓아 두었습니다. 얼룩 3장은 따로 빼서 97장입니다.' },
+      { who: '고마워요. 그럼 저 시트 좀 날라 주세요.' },
+      { me: 1, move: 'b4', hint: '옮길 곳을 모르면 시작할 수 없습니다.',
+        model: '어디로 나를까요?' },
+      { who: '3층 창고요.' },
+      { note: '시트 뭉치가 혼자 들기에는 너무 무겁습니다.' },
+      { me: 1, move: 'b7', hint: '혼자 버티다 다치면 산업재해입니다.',
+        model: '혼자 들기에 너무 무겁습니다. 도와주실 수 있나요?' }
+    ]
+  },
+  {
+    id: 'store', track: 'B', name: '물류·진열', place: '마트', other: '팀장님', icon: 'cart',
+    turns: [
+      { who: '○○ 씨, 이 음료 진열해 주세요.' },
+      { me: 1, move: 'b4', hint: '어느 매대인지 모르면 시작할 수 없습니다.',
+        model: '어느 매대에 진열할까요?' },
+      { who: '3번 통로 냉장고요.' },
+      { me: 1, move: 'b2', hint: '',
+        model: '네, 3번 통로 냉장고에 진열하겠습니다.' },
+      { note: '앞에서부터 채울지 뒤에서부터 채울지는 못 들었습니다. 한 줄만 채워 봤습니다.' },
+      { me: 1, move: 'b3', hint: '',
+        model: '한 줄 채워 봤습니다. 앞쪽부터 이렇게 채우면 될까요?' },
+      { who: '네 그렇게 해 주세요.' },
+      { note: '냉장고 안쪽에 유통기한이 지난 음료가 있습니다.' },
+      { me: 1, move: 'b7', hint: '혼자 버리지 않습니다. 몇 개인지 셉니다.',
+        model: '안쪽에 유통기한 지난 음료가 4개 있습니다. 어떻게 할까요?' },
+      { who: '아 그건 빼서 저한테 주세요.' },
+      { note: '다 넣으려는데 자리가 모자랍니다. 6개가 남았습니다.' },
+      { me: 1, move: 'b7', hint: '남은 걸 바닥에 두고 가지 않습니다.',
+        model: '자리가 모자라서 6개가 남았습니다. 이건 어디에 둘까요?' },
+      { who: '창고에 넣어 두세요.' },
+      { me: 1, move: 'b6', hint: '',
+        model: '음료 진열 다 했고, 남은 6개는 창고에 넣었습니다.' }
+    ]
+  },
+  {
+    id: 'clean', track: 'B', name: '청소·환경미화', place: '건물', other: '실장님', icon: 'broom',
+    turns: [
+      { who: '○○ 씨, 2층 복도 청소 좀 해 주세요.' },
+      { me: 1, move: 'b1', hint: '어디까지·언제까지 묻지 않습니다. 복도 청소는 알아서 하는 일입니다.',
+        model: '네.' },
+      { note: '청소기를 켰는데 돌아가지 않습니다.' },
+      { me: 1, move: 'b7', hint: '혼자 분해하거나 고치려 하지 않습니다.',
+        model: '청소기가 켜지지 않습니다. 어떻게 할까요?' },
+      { who: '아 그거 고장났어요. 창고에 있는 거 쓰세요.' },
+      { note: '복도 한가운데에 누가 흘린 물이 고여 있습니다.' },
+      { me: 1, move: 'b7', hint: '"닦을까요?" 하고 묻기보다, 알리고 바로 조치하는 편이 낫습니다.',
+        model: '복도에 물이 고여 있습니다. 미끄러울 것 같아서 먼저 닦겠습니다.' },
+      { who: '네 그렇게 해 주세요. 고마워요.' },
+      { note: '복도 끝에 큰 짐이 쌓여 있습니다. 치워도 되는지 모르겠습니다.' },
+      { me: 1, move: 'b7', hint: '남의 물건은 혼자 옮기지 않습니다.',
+        model: '복도 끝에 짐이 쌓여 있습니다. 치워도 될까요?' },
+      { who: '그건 그냥 두세요. 내일 가져갈 거예요.' },
+      { note: '복도 청소를 다 끝냈습니다.' },
+      { me: 1, move: 'b6', hint: '',
+        model: '2층 복도 청소 다 했습니다.' },
+      { who: '수고했어요. 그럼 분리수거도 부탁해요.' },
+      { me: 1, move: 'b5', hint: '여기 분류 기준을 아직 모릅니다. 섞어 버리면 다시 해야 합니다.',
+        model: '분리수거는 아직 해 보지 않았습니다. 어떻게 나누는지 알려 주시겠습니까?' }
+    ]
+  },
+  {
+    id: 'cashier', track: 'A', name: '마트 계산대', place: '계산대', other: '손님', icon: 'card',
+    turns: [
+      { note: '손님이 물건을 올려놓습니다.' },
+      { me: 1, move: 'a1', hint: '먼저 인사합니다.',
+        model: '안녕하세요, 고객님.' },
+      { note: '바코드를 모두 찍었습니다. 모두 12,400원입니다.' },
+      { me: 1, move: 'a2', hint: '금액을 또박또박 말합니다.',
+        model: '모두 12,400원입니다.' },
+      { note: '손님이 장바구니를 안 가져왔습니다. 물건이 많아 봉투가 필요해 보입니다.' },
+      { me: 1, move: 'a3', hint: '봉투는 유료입니다. 값까지 같이 알려 드립니다.',
+        model: '봉투 필요하십니까? 봉투는 100원입니다.' },
+      { who: '네 하나 주세요.' },
+      { me: 1, move: 'a3', hint: '결제수단을 여쭙습니다.',
+        model: '결제는 어떻게 도와드릴까요?' },
+      { who: '카드요.' },
+      { note: '카드를 받았는데 단말기가 한 번에 읽히지 않습니다.' },
+      { me: 1, move: 'a5', hint: '쿠션어로 시작하고, 질문형으로 부탁합니다.',
+        model: '죄송합니다, 고객님. 다시 한 번 해 보겠습니다. 잠시만 기다려 주시겠습니까?' },
+      { who: '네.' },
+      { note: '결제가 됐습니다. 그런데 손님이 고른 음료 하나가 행사 가격이 아니라 제값으로 찍혔습니다.' },
+      { me: 1, move: 'a6', hint: '사과 → 사실 → 대안. 대안은 손님이 고를 수 있는 것이어야 합니다.',
+        model: '죄송합니다, 고객님. 그 음료는 행사가 어제 끝나서 제값으로 계산되었습니다. 이 음료는 빼 드릴까요, 아니면 이대로 가져가시겠습니까?' },
+      { who: '아 괜찮아요. 그냥 가져갈게요.' },
+      { me: 1, move: 'a7', hint: '',
+        model: '감사합니다, 고객님. 안녕히 가세요.' }
+    ]
+  },
+  {
+    id: 'cafe', track: 'A', name: '카페', place: '카운터', other: '손님', icon: 'cup',
+    turns: [
+      { note: '손님이 들어옵니다.' },
+      { me: 1, move: 'a1', hint: '',
+        model: '안녕하세요, 고객님. 주문 도와드리겠습니다.' },
+      { who: '아이스 아메리카노 하나랑요, 카페라떼 한 잔 주세요. 아 그리고 치즈케이크도 하나요.' },
+      { me: 1, move: 'a3', hint: '두 잔 다 사이즈를 안 말했습니다. 내가 골라 주지 않고 여쭙습니다.',
+        model: '사이즈는 어떻게 하시겠습니까?' },
+      { who: '아메리카노는 톨로 주시고, 라떼는 제일 큰 걸로 주세요.' },
+      { note: '치즈케이크는 오늘 다 나갔습니다. 주문을 받는 지금 바로 알려야 합니다. 계산을 다 끝내고 말하면 손님이 두 번 기다리게 됩니다.' },
+      { me: 1, move: 'a6', hint: '사과 → 사실 → 대안. 셋 다 빠뜨리지 않습니다.',
+        model: '죄송합니다, 고객님. 치즈케이크는 오늘 다 나갔습니다. 대신 초코 케이크는 어떠십니까?' },
+      { who: '아 그럼 그걸로 주세요.' },
+      { me: 1, move: 'a2', hint: '사이즈와 바뀐 메뉴까지 넣어서 한 번에 되읽습니다.',
+        model: '주문하신 것이 아이스 아메리카노 톨 1잔, 카페라떼 벤티 1잔, 초코 케이크 1개 맞으십니까?' },
+      { who: '네 그거 맞아요.' },
+      { me: 1, move: 'a3', hint: '',
+        model: '포장으로 하시겠습니까, 아니면 드시고 가시겠습니까?' },
+      { who: '먹고 갈게요.' },
+      { me: 1, move: 'a4', hint: '금액을 말하고, 만드는 동안 기다려 달라고 질문형으로 부탁합니다.',
+        model: '모두 15,800원입니다. 만들어 드리는 동안 잠시만 기다려 주시겠습니까?' },
+      { note: '주문하신 음료와 케이크가 모두 나왔습니다.' },
+      { me: 1, move: 'a7', hint: '',
+        model: '기다려 주셔서 감사합니다. 맛있게 드세요.' }
+    ]
+  },
+  {
+    id: 'hotel', track: 'A', name: '호텔 객실 정리', place: '호텔', other: '주임님 / 손님', icon: 'bed',
+    turns: [
+      { who: '주임님 — ○○ 씨, 305호 청소해 주세요.' },
+      { me: 1, move: 'b2', hint: '언제까지인지 묻지 않습니다. 객실 청소는 순서대로 하는 일입니다.',
+        model: '네, 305호 청소하겠습니다.' },
+      { note: '복도를 지나가는데 손님이 부릅니다. "저기요, 수건 좀 더 주세요."' },
+      { me: 1, move: 'a4', hint: '손님에게는 말투가 달라집니다. 호칭 + 질문형.',
+        model: '네, 고객님. 바로 갖다 드리겠습니다. 잠시만 기다려 주시겠습니까?' },
+      { note: '305호에 들어갔는데 손님 짐이 그대로 있습니다.' },
+      { me: 1, move: 'b7', hint: '혼자 판단해서 청소하거나 짐을 옮기지 않습니다.',
+        model: '305호에 손님 짐이 그대로 있습니다. 청소해도 될까요?' },
+      { who: '주임님 — 아 그 방 아직 체크아웃 안 했네요. 나오세요. 306호부터 해 주세요.' },
+      { note: '나오는데 그 방 손님과 마주쳤습니다. 손님이 "왜 들어왔어요?" 하고 묻습니다.' },
+      { me: 1, move: 'a5', hint: '변명하지 않습니다. 쿠션어 + 사과.',
+        model: '죄송합니다, 고객님. 제가 호실을 잘못 알고 들어왔습니다. 죄송합니다.' },
+      { note: '다른 방 청소를 다 끝냈습니다.' },
+      { me: 1, move: 'b6', hint: '',
+        model: '306호 청소 다 했습니다.' }
+    ]
+  }
+];
+
+/* ── 공통 ── */
+const ADV_ICONS = {
+  doc:'<path d="M16 6h22l10 10v42H16z"/><path d="M38 6v10h10"/><path d="M24 32h16M24 42h16"/>',
+  box:'<path d="M8 20l24-12 24 12v24L32 56 8 44z"/><path d="M8 20l24 12 24-12M32 32v24"/>',
+  tray:'<path d="M10 24h44l-6 28H16z"/><path d="M20 24V12h24v12"/><path d="M22 34h20"/>',
+  towel:'<path d="M14 10h30a6 6 0 0 1 6 6v38H20a6 6 0 0 1-6-6z"/><path d="M50 10a6 6 0 0 0-6 6v38"/><path d="M22 20h14M22 28h14"/>',
+  cart:'<path d="M8 12h8l7 28h24l6-20H18"/><circle cx="26" cy="50" r="4"/><circle cx="46" cy="50" r="4"/>',
+  broom:'<path d="M40 8L24 24"/><path d="M18 30l16-16 8 8-16 16z"/><path d="M18 30L8 56h28l-6-18z"/>',
+  plant:'<path d="M32 56V28"/><path d="M32 34c-10 0-16-6-16-16 10 0 16 6 16 16z"/><path d="M32 30c8 0 14-5 14-14-8 0-14 5-14 14z"/><path d="M18 56h28"/>',
+  card:'<rect x="8" y="16" width="48" height="32" rx="5"/><path d="M8 26h48"/><path d="M16 38h10"/>',
+  cup:'<path d="M14 18h30v22a12 12 0 0 1-12 12h-6a12 12 0 0 1-12-12z"/><path d="M44 24h6a6 6 0 0 1 0 12h-6"/><path d="M12 58h36"/>',
+  bed:'<path d="M8 46V18M8 32h40v14M48 46V30"/><circle cx="20" cy="26" r="5"/><path d="M26 32h16v-5a3 3 0 0 0-3-3H28"/>',
+  book:'<path d="M10 12h18a6 6 0 0 1 6 6v34a6 6 0 0 0-6-6H10z"/><path d="M54 12H36a6 6 0 0 0-6 6v34a6 6 0 0 1 6-6h18z"/>'
+};
+const ALL = Object.assign({}, B_ICONS, ADV_ICONS);
+const svg = id => '<svg viewBox="0 0 64 64" fill="none" stroke="currentColor" ' +
+  'stroke-linecap="round" stroke-linejoin="round">' + (ALL[id]||ALL.doc) + '</svg>';
+const G = {}; GROUPS.forEach(g => G[g.key] = g);
+const TRACK = { A:{c:'#B4543A', n:'고객 응대', d:'상대의 기분을 배려한다'},
+                B:{c:'#2F6E8F', n:'직장 내부', d:'정확하게 주고받는다'} };
+
+let level='basic', lv=0, nOpt=3, rate=.85, ttsOn=1;
+let voices=[], voiceIdx=-1;
+let cur=null, tab='learn', cue='', shown=0, qSit=null;   // 기본
+let steps=[], si=0, stage=0;                             // 심화
+
+function loadVoices(){
+  voices = speechSynthesis.getVoices().filter(v => (v.lang||'').toLowerCase().startsWith('ko'));
+  const sel = document.getElementById('voice');
+  if (!voices.length){ sel.innerHTML = '<option>한국어 음성 없음</option>'; return; }
+  sel.innerHTML = voices.map((v,i) => '<option value="'+i+'">'+v.name+'</option>').join('');
+  if (voiceIdx < 0) voiceIdx = 0;
+  sel.value = voiceIdx;
+}
+loadVoices(); speechSynthesis.onvoiceschanged = loadVoices;
+
+function say(t){
+  if (!ttsOn || !t) return;
+  speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(t);
+  u.lang='ko-KR'; u.rate=rate; u.volume=1; u.pitch=1;
+  if (voices[voiceIdx]) u.voice = voices[voiceIdx];
+  speechSynthesis.speak(u);
+}
+const plain = s => s.replace(/^[^—]*—\s*/, '');
+
+/* ── 대시보드 ── */
+function drawBoard(){
+  let h = '';
+  if (level === 'basic'){
+    GROUPS.forEach(g => {
+      const list = SITUATIONS.filter(s => s.g === g.key);
+      h += '<section class="grp"><div class="glabel" style="color:'+g.color+'">' +
+           '<b>'+g.name+'</b><span>'+list.length+'가지</span></div><div class="cards">' +
+        list.map(s =>
+          '<button class="card" data-open="'+s.id+'">' +
+            '<span class="chip" style="background:'+g.color+'1F; color:'+g.color+'">'+svg(s.icon)+'</span>' +
+            '<b>'+s.lv[0]+'</b><small>'+s.when+'</small></button>').join('') +
+        '</div></section>';
+    });
+  } else {
+    ['B','A'].forEach(tk => {
+      const g = TRACK[tk], list = SCENES.filter(s => s.track === tk);
+      h += '<section class="grp"><div class="glabel" style="color:'+g.c+'">' +
+           '<b>갈래 '+tk+' · '+g.n+'</b><span>'+g.d+'</span></div><div class="cards">' +
+        list.map(s =>
+          '<button class="card" data-open="'+s.id+'">' +
+            '<span class="chip" style="background:'+g.c+'1F; color:'+g.c+'">'+svg(s.icon)+'</span>' +
+            '<b>'+s.name+'</b><small>'+s.place+' · '+s.other+'</small></button>').join('') +
+        '</div></section>';
+    });
+  }
+  document.getElementById('board').innerHTML = h;
+  document.getElementById('goref').style.display = level === 'adv' ? '' : 'none';
+}
+
+/* ── 모달 공통 ── */
+const scrim = document.getElementById('scrim');
+const modal = document.getElementById('modal');
+function closeModal(){ speechSynthesis.cancel(); scrim.classList.remove('on'); cur = null; }
+
+function openCard(id){
+  if (level === 'basic'){
+    cur = SITUATIONS.find(s => s.id === id);
+    tab = 'learn'; shown = 0; newCue(); qSit = null;
+    renderBasic();
+  } else {
+    cur = SCENES.find(s => s.id === id);
+    steps = buildSteps(cur); si = 0; stage = 0;
+    renderAdv();
+  }
+  scrim.classList.add('on');
+}
+
+/* ── 기본 ── */
+function newCue(){ const c = CUES[cur.id]; cue = c[(Math.random()*c.length)|0]; }
+
+function renderBasic(){
+  const s = cur, g = G[s.g];
+  modal.innerHTML =
+    '<div class="mhead" style="background:'+g.color+'">' +
+      '<b>'+s.when+'</b><em>'+s.who+'</em><button class="x" data-close>&#10005;</button></div>' +
+    '<div class="tabs">' +
+      ['learn','drill','quiz'].map(t =>
+        '<button data-tab="'+t+'"'+(tab===t?' class="on"':'')+'>' +
+        {learn:'배우기', drill:'연습', quiz:'골라보기'}[t] + '</button>').join('') +
+    '</div><div class="body" id="body"></div>' +
+    '<div class="mfoot" id="foot"></div>';
+  const b = document.getElementById('body'), f = document.getElementById('foot');
+  const i = SITUATIONS.indexOf(s);
+
+  if (tab === 'learn'){
+    const t = s.lv[lv];
+    b.innerHTML = '<div class="row2">' +
+      '<span class="bigchip" style="background:'+g.color+'1A; color:'+g.color+'">'+svg(s.icon)+'</span>' +
+      '<div class="rt"><div class="bubble'+(t.length>14?' long':'')+'" id="bub">'+t+'</div>' +
+      '<div class="tap">말풍선을 누르면 다시 들려줍니다</div>' +
+      '<div class="facts">' +
+        '<div class="fact"><b>누구에게</b>'+s.who+'</div>' +
+        '<div class="fact"><b>말한 다음에</b>'+s.after+'</div>' +
+        '<div class="fact"><b>왜</b>'+s.why+'</div>' +
+      '</div></div></div>';
+    f.innerHTML = '<button class="mbtn" id="prev"'+(i===0?' disabled':'')+'>&#9664; 이전</button>' +
+      '<div class="mid">'+(i+1)+' / '+SITUATIONS.length+'</div>' +
+      '<button class="mbtn dark" id="next"'+(i===SITUATIONS.length-1?' disabled':'')+'>다음 &#9654;</button>';
+    say(t);
+
+  } else if (tab === 'drill'){
+    b.innerHTML =
+      '<div class="line"><span class="who">점장님</span>' +
+        '<div class="say" id="cue">'+cue+'</div></div>' +
+      '<div class="line"><span class="who me">나</span><div style="flex:1">' +
+        '<div class="ans'+(shown?'':' ph')+'" id="ans">'+(shown ? s.lv[lv] : '· · ·')+'</div>' +
+        (shown ? '<div class="hint"><b>말한 다음에</b> '+s.after+'</div>' : '') +
+      '</div></div>';
+    f.innerHTML = '<button class="mbtn" id="recue">다른 말로 &#8635;</button><div class="mid"></div>' +
+      '<button class="mbtn dark" id="reveal">'+(shown ? '다음 상황 &#9654;' : '대답 보기 &#9654;')+'</button>';
+    if (!shown) say(cue);
+
+  } else {
+    if (!qSit) buildQuiz();
+    b.innerHTML = '<div class="qwrap">' +
+      '<h2>'+s.when+'<small>뭐라고 말할까요?</small></h2><div class="opts">' +
+      qSit.map(o => '<button class="opt" data-pick="'+o.id+'">'+svg(o.icon) +
+                    '<span>'+o.lv[lv]+'</span></button>').join('') +
+      '</div><div class="fb" id="fb"></div></div>';
+    f.innerHTML = '<div class="mid"></div><button class="mbtn dark" id="requiz">다시 &#8635;</button>';
+    say(s.when + '. 뭐라고 말할까요?');
+  }
+}
+function buildQuiz(){
+  const others = SITUATIONS.filter(o => o.id !== cur.id).sort(() => Math.random()-.5);
+  qSit = [cur, ...others.slice(0, nOpt-1)].sort(() => Math.random()-.5);
+}
+
+/* ── 심화 ──
+   상대 대사(+상황 설명)와 내 빈칸을 한 묶음으로 본다.
+   [대답 보기] -> [다음 문제] 두 번만 누른다. */
+function buildSteps(s){
+  const out = []; let buf = [];
+  s.turns.forEach(t => {
+    if (t.me){ out.push({ctx: buf, me: t}); buf = []; }
+    else buf.push(t);
+  });
+  if (buf.length) out.push({ctx: buf, me: null});
+  return out;
+}
+function renderAdv(){
+  const s = cur, c = TRACK[s.track].c;
+  modal.innerHTML =
+    '<div class="mhead" style="background:'+c+'">' +
+      '<b>'+s.name+'</b><em>'+s.place+' · '+s.other+'</em>' +
+      '<button class="x" data-close>&#10005;</button></div>' +
+    '<div class="body" id="body"></div>' +
+    '<div class="mfoot">' +
+      '<button class="mbtn" id="back">&#9664; 처음부터</button>' +
+      '<div class="mid" id="mid"></div>' +
+      '<button class="mbtn dark" id="go"></button></div>';
+  paintAdv(); sayStep();
+}
+function paintAdv(){
+  const f = document.getElementById('body');
+  let h = '';
+  for (let i = 0; i < si; i++) h += stepHtml(steps[i], true, i);
+  if (si < steps.length) h += stepHtml(steps[si], false, si);
+  f.innerHTML = h; f.scrollTop = f.scrollHeight;
+  const done = si >= steps.length;
+  document.getElementById('mid').textContent = done ? '끝' : (si+1)+' / '+steps.length;
+  document.getElementById('go').innerHTML = done ? '처음부터 &#9654;'
+    : (stage === 0 && steps[si].me) ? '대답 보기 &#9654;' : '다음 문제 &#9654;';
+}
+function stepHtml(st, past, idx){
+  const c = TRACK[cur.track].c;
+  let h = '';
+  st.ctx.forEach((t, k) => {
+    if (t.note) h += '<div class="note'+(past?' dim':'')+'">'+t.note+'</div>';
+    else h += '<div class="line'+(past?' dim':'')+'"><span class="who">'+cur.other+'</span>' +
+              '<div class="say" data-step="'+idx+'" data-ci="'+k+'">'+t.who+'</div></div>';
+  });
+  if (!st.me) return h;
+  const t = st.me, m = MOVES[t.move], sh = past || stage >= 1;
+  return h + '<div class="line'+(past?' dim':'')+'"><span class="who me">나</span><div style="flex:1">' +
+    '<span class="badge" style="background:'+c+'">'+t.move.toUpperCase()+' '+m.t+'</span>' +
+    '<div class="ans'+(sh?'':' ph')+'" data-ast="'+idx+'">'+(sh ? t.model : '· · ·')+'</div>' +
+    (t.hint && !sh ? '<div class="hint">'+t.hint+'</div>' : '') +
+    (sh ? '<div class="hint">'+m.d+'</div>' : '') + '</div></div>';
+}
+function sayStep(){
+  if (si >= steps.length) return;
+  const w = steps[si].ctx.filter(t => t.who);
+  if (w.length) say(plain(w[w.length-1].who));
+}
+function advGo(){
+  if (si >= steps.length){ si = 0; stage = 0; paintAdv(); sayStep(); return; }
+  if (stage === 0 && steps[si].me){ stage = 1; paintAdv(); say(steps[si].me.model); return; }
+  si++; stage = 0; paintAdv(); sayStep();
+}
+
+/* ── 기술 설명 ── */
+function drawRef(){
+  const grp = k => Object.keys(MOVES).filter(x => x[0] === k).map(x =>
+    '<div class="mv"><b style="color:'+(k==='a'?TRACK.A.c:TRACK.B.c)+'">'+x.toUpperCase()+
+    ' '+MOVES[x].t+'</b><span>'+MOVES[x].d+'</span></div>').join('');
+  document.getElementById('refbox').innerHTML =
+    '<h2>말하기 기술</h2>' +
+    '<h4 style="color:'+TRACK.A.c+'">갈래 A · 고객 응대 — 상대의 기분을 배려한다</h4>' + grp('a') +
+    '<h4 style="color:'+TRACK.B.c+'">갈래 B · 직장 내부 — 정확하게 주고받는다</h4>' + grp('b') +
+    '<div class="hint" style="margin-top:2.4vmin">아무 데나 누르면 닫힙니다</div>';
+}
+
+/* ── 조작 ── */
+document.addEventListener('click', e => {
+  const seg = e.target.closest('[data-lev]');
+  if (seg){ level = seg.dataset.lev; closeModal();
+    document.querySelectorAll('[data-lev]').forEach(b => b.classList.toggle('on', b === seg));
+    drawBoard(); return; }
+  if (e.target.closest('#gear')) { document.getElementById('panel').classList.toggle('on'); return; }
+  if (e.target.closest('#goref')) { drawRef(); document.getElementById('refs').classList.add('on'); return; }
+  if (e.target.closest('#refs') && !e.target.closest('.mv')) {
+    document.getElementById('refs').classList.remove('on'); return; }
+  if (e.target.closest('#full')) {
+    if (document.fullscreenElement) document.exitFullscreen();
+    else document.documentElement.requestFullscreen();
+    return; }
+  if (e.target.closest('[data-close]') || e.target === scrim) { closeModal(); return; }
+
+  const c = e.target.closest('[data-open]');
+  if (c) { openCard(c.dataset.open); return; }
+  if (!cur) {
+    if (!e.target.closest('.panel') && !e.target.closest('#gear'))
+      document.getElementById('panel').classList.remove('on');
+  }
+
+  /* 기본 */
+  const tb = e.target.closest('[data-tab]');
+  if (tb){ tab = tb.dataset.tab; if (tab === 'quiz') qSit = null; renderBasic(); return; }
+  if (e.target.closest('#bub')) { say(cur.lv[lv]); return; }
+  if (e.target.closest('#cue')) { say(cue); return; }
+  if (e.target.closest('#recue')) { newCue(); shown = 0; renderBasic(); return; }
+  if (e.target.closest('#reveal')) {
+    if (!shown){ shown = 1; renderBasic(); say(cur.lv[lv]); }
+    else { const i = SITUATIONS.indexOf(cur);
+      cur = SITUATIONS[(i+1) % SITUATIONS.length]; shown = 0; newCue(); renderBasic(); }
+    return; }
+  if (e.target.closest('#ans') && shown) { say(cur.lv[lv]); return; }
+  if (e.target.closest('#prev')) { cur = SITUATIONS[SITUATIONS.indexOf(cur)-1]; renderBasic(); return; }
+  if (e.target.closest('#next')) { cur = SITUATIONS[SITUATIONS.indexOf(cur)+1]; renderBasic(); return; }
+  if (e.target.closest('#requiz')) { qSit = null; renderBasic(); return; }
+  const o = e.target.closest('[data-pick]');
+  if (o){ const fb = document.getElementById('fb');
+    if (o.dataset.pick === cur.id){ o.classList.add('ok');
+      fb.className = 'fb good'; fb.textContent = '맞았어요 — ' + REPLY[cur.id];
+      say(cur.lv[lv] + '. ' + REPLY[cur.id]); }
+    else { o.classList.add('no'); o.disabled = true;
+      fb.className = 'fb bad'; fb.textContent = '다시 골라 보세요'; say('다시 골라 보세요'); }
+    return; }
+
+  /* 심화 */
+  if (e.target.closest('#go')) { advGo(); return; }
+  if (e.target.closest('#back')) { si = 0; stage = 0; paintAdv(); sayStep(); return; }
+  const sy = e.target.closest('[data-step]');
+  if (sy && cur) { say(plain(steps[+sy.dataset.step].ctx[+sy.dataset.ci].who)); return; }
+  const an = e.target.closest('[data-ast]');
+  if (an && cur){ const i = +an.dataset.ast;
+    if (i < si || stage >= 1) say(steps[i].me.model); return; }
+
+  /* 설정 */
+  const L = e.target.closest('[data-lv]');
+  if (L){ lv = +L.dataset.lv;
+    document.querySelectorAll('[data-lv]').forEach(b => b.classList.toggle('on', b === L));
+    drawBoard(); if (cur && level === 'basic') renderBasic(); return; }
+  const nn = e.target.closest('[data-n]');
+  if (nn){ nOpt = +nn.dataset.n;
+    document.querySelectorAll('[data-n]').forEach(b => b.classList.toggle('on', b === nn));
+    if (cur && tab === 'quiz'){ qSit = null; renderBasic(); } return; }
+  const r = e.target.closest('[data-rate]');
+  if (r){ rate = +r.dataset.rate;
+    document.querySelectorAll('[data-rate]').forEach(b => b.classList.toggle('on', b === r)); return; }
+  const tt = e.target.closest('[data-tts]');
+  if (tt){ ttsOn = +tt.dataset.tts;
+    document.querySelectorAll('[data-tts]').forEach(b => b.classList.toggle('on', b === tt));
+    if (!ttsOn) speechSynthesis.cancel(); return; }
+
+  if (!e.target.closest('.panel') && !e.target.closest('#gear'))
+    document.getElementById('panel').classList.remove('on');
+});
+
+document.getElementById('voice').addEventListener('change', e => { voiceIdx = +e.target.value; });
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') { closeModal(); document.getElementById('refs').classList.remove('on'); }
+  else if (cur && level === 'adv' && (e.key === 'ArrowRight' || e.key === 'PageDown' || e.key === ' ')) {
+    e.preventDefault(); advGo(); }
+  else if (cur && level === 'basic' && tab === 'learn'){
+    const i = SITUATIONS.indexOf(cur);
+    if (e.key === 'ArrowRight' && i < SITUATIONS.length-1){ e.preventDefault(); cur = SITUATIONS[i+1]; renderBasic(); }
+    if (e.key === 'ArrowLeft' && i > 0){ e.preventDefault(); cur = SITUATIONS[i-1]; renderBasic(); }
+  }
+});
+
+drawBoard();
+</script>
+</body>
+</html>
